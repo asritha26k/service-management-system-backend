@@ -1,0 +1,62 @@
+# Build artifacts (ALL SERVICES)
+**/target/
+**/build/
+**/out/
+**/bin/
+
+# Logs
+**/*.log
+**/logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IntelliJ IDEA (ALL MODULES)
+**/.idea/
+**/*.iml
+**/*.ipr
+**/*.iws
+
+# Eclipse / Spring Tool Suite (STS)
+**/.classpath
+**/.project
+**/.settings/
+**/.springBeans
+**/.factorypath
+
+# VS Code
+**/.vscode/
+
+# Maven
+**/.mvn/wrapper/maven-wrapper.jar
+
+
+
+# Spring Boot
+**/.recommenders/
+
+# Environment & Secrets
+**/.env
+**/.env.*
+**/application-*.yml
+**/application-*.properties
+
+# Docker
+**/*.pid
+docker-compose.override.yml
+
+
+# Test reports
+**/surefire-reports/
+**/failsafe-reports/
+
+# Coverage
+**/coverage/
+**/jacoco/
+**/*.exec
+
+# Temporary / editor files
+**/*.swp
+**/*.swo
+**/*~

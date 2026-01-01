@@ -85,6 +85,8 @@ public class SecurityConfiguration {
                         .pathMatchers("/api/service-requests/customer/*/with-technician").hasRole(ROLE_CUSTOMER)
                         .pathMatchers("/api/service-requests/technician/my-requests").hasRole(ROLE_TECHNICIAN)
                         .pathMatchers("/api/service-requests/*/complete").hasRole(ROLE_TECHNICIAN)
+                        .pathMatchers("/api/service-requests/*/accept").hasRole(ROLE_TECHNICIAN)
+                        .pathMatchers("/api/service-requests/*/reject").hasRole(ROLE_TECHNICIAN)
                         .pathMatchers("/api/service-requests/*/assign")
                         .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
                         .pathMatchers("/api/service-requests/*/status")

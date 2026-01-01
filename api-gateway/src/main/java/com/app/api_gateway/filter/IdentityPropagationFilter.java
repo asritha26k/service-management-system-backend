@@ -1,7 +1,5 @@
 package com.app.api_gateway.filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -59,12 +57,14 @@ public class IdentityPropagationFilter implements GlobalFilter, Ordered {
                     headers.remove(HEADER_USER_ID);
                     headers.remove(HEADER_USER_ROLE);
 
-                    if (userId != null && userId != null && !userId.trim().isEmpty()) {
+                    if (userId != null && !userId.trim().isEmpty()) {
                         headers.add(HEADER_USER_ID, userId);
                     }
-                    if (role != null && userId != null && !userId.trim().isEmpty()) {
+
+                    if (role != null && !role.trim().isEmpty()) {
                         headers.add(HEADER_USER_ROLE, role);
                     }
+
                 })
                 .build();
 

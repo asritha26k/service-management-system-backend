@@ -16,18 +16,15 @@
     <name>Service Management System</name>
     <description>Microservices-based Service Management Platform</description>
 
-
     <!-- PROPERTIES -->
-
     <properties>
         <java.version>17</java.version>
         <spring.boot.version>3.2.5</spring.boot.version>
         <spring.cloud.version>2023.0.3</spring.cloud.version>
+        <sonar.maven.plugin.version>3.11.0.3922</sonar.maven.plugin.version>
     </properties>
 
-
     <!-- MODULES -->
-
     <modules>
         <module>config-server</module>
         <module>eureka-server</module>
@@ -38,9 +35,7 @@
         <module>notification-service</module>
     </modules>
 
-
     <!-- DEPENDENCY MANAGEMENT -->
-
     <dependencyManagement>
         <dependencies>
 
@@ -65,10 +60,22 @@
         </dependencies>
     </dependencyManagement>
 
-
     <!-- BUILD -->
-
     <build>
+
+        <!-- EXECUTABLE PLUGINS -->
+        <plugins>
+
+            <!-- SonarQube Maven Plugin (REQUIRED) -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar.maven.plugin.version}</version>
+            </plugin>
+
+        </plugins>
+
+        <!-- PLUGIN MANAGEMENT -->
         <pluginManagement>
             <plugins>
 
@@ -90,6 +97,7 @@
 
             </plugins>
         </pluginManagement>
+
     </build>
 
 </project>

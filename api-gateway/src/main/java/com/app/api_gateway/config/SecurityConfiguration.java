@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
@@ -13,6 +14,13 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfiguration {
+
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_MANAGER = "MANAGER";
+    private static final String ROLE_TECHNICIAN = "TECHNICIAN";
+    private static final String ROLE_CUSTOMER = "CUSTOMER";
+
+    private static final String USER_PROFILE = "/api/users/profile";
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(
@@ -22,28 +30,24 @@ public class SecurityConfiguration {
     ) {
 
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .httpBasic(b -> b.disable())
-                .formLogin(f -> f.disable())
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .addFilterBefore(jwtAuthWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchange -> exchange
-                        //cors pre flight
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // public endpoints
                         .pathMatchers(
                                 "/actuator/**",
                                 "/api/auth/login",
                                 "/api/auth/register",
                                 "/api/auth/refresh",
                                 "/api/technicians/apply",
-
                                 "/identity-service/api/auth/login",
                                 "/identity-service/api/auth/register",
                                 "/identity-service/api/auth/refresh",
                                 "/technician-service/api/technicians/apply",
-
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
@@ -54,198 +58,61 @@ public class SecurityConfiguration {
                                 "/*/api-docs/**"
                         ).permitAll()
 
-                        // identity-service
-                        .pathMatchers("/api/auth/me")
-                        .authenticated()
+                        .pathMatchers("/api/auth/me").authenticated()
+                        .pathMatchers("/api/auth/admin/**").hasRole(ROLE_ADMIN)
+                        .pathMatchers("/api/users/role/**", "/api/users/search").hasRole(ROLE_ADMIN)
 
-                        .pathMatchers("/api/auth/admin/**")
-                        .hasRole("ADMIN")
+                        .pathMatchers(HttpMethod.POST, USER_PROFILE).authenticated()
+                        .pathMatchers(HttpMethod.GET, USER_PROFILE).authenticated()
+                        .pathMatchers(HttpMethod.PUT, USER_PROFILE).authenticated()
 
-                        .pathMatchers("/api/users/role/**", "/api/users/search")
-                        .hasRole("ADMIN")
+                        .pathMatchers(USER_PROFILE + "/**")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_TECHNICIAN, ROLE_CUSTOMER)
 
-                        .pathMatchers("/api/users/profile/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN", "CUSTOMER")
+                        .pathMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/api/users/**")
-                        .permitAll()
-
-                        // service-catalog
-                        .pathMatchers(HttpMethod.GET, "/api/catalog/categories", "/api/catalog/services")
-                        .permitAll()
-
+                        .pathMatchers(HttpMethod.GET, "/api/catalog/categories", "/api/catalog/services").permitAll()
                         .pathMatchers("/api/catalog/categories/**", "/api/catalog/services/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_CUSTOMER)
 
-                        // service-request non prefixed
-                        .pathMatchers(HttpMethod.POST, "/api/service-requests")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers(HttpMethod.GET, "/api/service-requests")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
+                        .pathMatchers(HttpMethod.POST, "/api/service-requests").hasRole(ROLE_CUSTOMER)
+                        .pathMatchers(HttpMethod.GET, "/api/service-requests").hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
                         .pathMatchers(HttpMethod.GET, "/api/service-requests/status/**")
-                        .hasAnyRole("ADMIN", "MANAGER")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
 
-                        .pathMatchers("/api/service-requests/customer/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/service-requests/my-requests/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/service-requests/customer/*/with-technician")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/service-requests/technician/my-requests")
-                        .hasRole("TECHNICIAN")
-
-                        .pathMatchers("/api/service-requests/*/complete")
-                        .hasRole("TECHNICIAN")
-
+                        .pathMatchers("/api/service-requests/customer/**").hasRole(ROLE_CUSTOMER)
+                        .pathMatchers("/api/service-requests/my-requests/**").hasRole(ROLE_CUSTOMER)
+                        .pathMatchers("/api/service-requests/customer/*/with-technician").hasRole(ROLE_CUSTOMER)
+                        .pathMatchers("/api/service-requests/technician/my-requests").hasRole(ROLE_TECHNICIAN)
+                        .pathMatchers("/api/service-requests/*/complete").hasRole(ROLE_TECHNICIAN)
                         .pathMatchers("/api/service-requests/*/assign")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
                         .pathMatchers("/api/service-requests/*/status")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN")
-
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_TECHNICIAN)
                         .pathMatchers("/api/service-requests/stats")
-                        .hasAnyRole("ADMIN", "MANAGER")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
 
-                        // service-requests prefixed
-                        .pathMatchers(HttpMethod.POST, "/service-operations-service/api/service-requests")
-                        .hasRole("CUSTOMER")
+                        .pathMatchers("/api/ratings").hasRole(ROLE_CUSTOMER)
+                        .pathMatchers("/api/ratings/technician/**").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/service-operations-service/api/service-requests")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers(HttpMethod.GET, "/service-operations-service/api/service-requests/status/**")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/customer/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/my-requests/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/customer/*/with-technician")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/technician/my-requests")
-                        .hasRole("TECHNICIAN")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/*/complete")
-                        .hasRole("TECHNICIAN")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/*/assign")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/*/status")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN")
-
-                        .pathMatchers("/service-operations-service/api/service-requests/stats")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        // billing requests
-                        .pathMatchers("/api/billing/invoices/customer/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/billing/invoices/request/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/billing/invoices/*/pay")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/billing/invoices/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-
-                        .pathMatchers("/api/billing/reports/**")
-                        .hasRole("ADMIN")
-
-                        .pathMatchers("/service-operations-service/api/billing/invoices/customer/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/billing/invoices/request/**")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/billing/invoices/*/pay")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/billing/invoices/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/billing/reports/**")
-                        .hasRole("ADMIN")
-
-                        // ratings
-                        .pathMatchers(HttpMethod.POST, "/api/ratings")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/api/ratings/technician/**")
-                        .permitAll()
-
-                        .pathMatchers(HttpMethod.POST, "/service-operations-service/api/ratings")
-                        .hasRole("CUSTOMER")
-
-                        .pathMatchers("/service-operations-service/api/ratings/technician/**")
-                        .permitAll()
-
-                        // technician service
-                        .pathMatchers("/api/technicians/profile")
-                        .hasRole("TECHNICIAN")
-
+                        .pathMatchers("/api/technicians/profile").hasRole(ROLE_TECHNICIAN)
+                        .pathMatchers("/api/technicians/me").hasRole(ROLE_TECHNICIAN)
+                        .pathMatchers("/api/technicians/my/availability").hasRole(ROLE_TECHNICIAN)
+                        .pathMatchers("/api/technicians/my/workload").hasRole(ROLE_TECHNICIAN)
                         .pathMatchers("/api/technicians/by-user/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN")
-
-                        .pathMatchers("/api/technicians/applications/pending")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers("/api/technicians/applications/*/approve")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers("/api/technicians/applications/*/reject")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_TECHNICIAN)
+                        .pathMatchers("/api/technicians/applications/**")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
                         .pathMatchers("/api/technicians/available")
-                        .hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-
-                        .pathMatchers("/api/technicians/stats")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers("/api/technicians/*/rating")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_CUSTOMER)
                         .pathMatchers("/api/technicians/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_TECHNICIAN)
 
-                        .pathMatchers("/technician-service/api/technicians/*/rating")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .pathMatchers("/technician-service/api/technicians/by-user/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN")
-
-                        .pathMatchers("/technician-service/api/technicians/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN")
-
-                        // notifications
-                        .pathMatchers("/api/notifications/send-credentials")
-                        .hasRole("ADMIN")
-
+                        .pathMatchers("/api/notifications/send-credentials").hasRole(ROLE_ADMIN)
                         .pathMatchers("/api/notifications/user/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN", "CUSTOMER")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_TECHNICIAN, ROLE_CUSTOMER)
+                        .pathMatchers("/api/notifications/**").authenticated()
 
-                        .pathMatchers("/api/notifications/**")
-                        .authenticated()
-
-                        .pathMatchers("/notification-service/api/notifications/send-credentials")
-                        .hasRole("ADMIN")
-
-                        .pathMatchers("/notification-service/api/notifications/user/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "TECHNICIAN", "CUSTOMER")
-
-                        .pathMatchers("/notification-service/api/notifications/**")
-                        .authenticated()
-
-                        //fall back secure way to authenticate
                         .anyExchange().authenticated()
                 );
 

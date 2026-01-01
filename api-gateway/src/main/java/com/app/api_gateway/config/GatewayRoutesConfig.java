@@ -5,37 +5,30 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-//configuration for explicit routing, for swagger docs to see endpoints seperately
 @Configuration
 public class GatewayRoutesConfig {
+
+    private static final String API_DOCS = "/v3/api-docs";
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Identity Service - OpenAPI docs
                 .route("identity-service-api-docs", r -> r
-                        .path("/identity-service/v3/api-docs/**")
-                        .filters(f -> f.rewritePath("/identity-service/v3/api-docs", "/v3/api-docs"))
+                        .path("/identity-service" + API_DOCS + "/**")
+                        .filters(f -> f.rewritePath("/identity-service" + API_DOCS, API_DOCS))
                         .uri("lb://IDENTITY-SERVICE"))
-                
-                // Technician Service - OpenAPI docs
                 .route("technician-service-api-docs", r -> r
-                        .path("/technician-service/v3/api-docs/**")
-                        .filters(f -> f.rewritePath("/technician-service/v3/api-docs", "/v3/api-docs"))
+                        .path("/technician-service" + API_DOCS + "/**")
+                        .filters(f -> f.rewritePath("/technician-service" + API_DOCS, API_DOCS))
                         .uri("lb://TECHNICIAN-SERVICE"))
-                
-                // Service Operations - OpenAPI docs
                 .route("service-operations-service-api-docs", r -> r
-                        .path("/service-operations-service/v3/api-docs/**")
-                        .filters(f -> f.rewritePath("/service-operations-service/v3/api-docs", "/v3/api-docs"))
+                        .path("/service-operations-service" + API_DOCS + "/**")
+                        .filters(f -> f.rewritePath("/service-operations-service" + API_DOCS, API_DOCS))
                         .uri("lb://SERVICE-OPERATIONS-SERVICE"))
-                
-                // Notification Service - OpenAPI docs
                 .route("notification-service-api-docs", r -> r
-                        .path("/notification-service/v3/api-docs/**")
-                        .filters(f -> f.rewritePath("/notification-service/v3/api-docs", "/v3/api-docs"))
+                        .path("/notification-service" + API_DOCS + "/**")
+                        .filters(f -> f.rewritePath("/notification-service" + API_DOCS, API_DOCS))
                         .uri("lb://NOTIFICATION-SERVICE"))
-                
                 .build();
     }
 }

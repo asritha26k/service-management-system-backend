@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationManager.class);
 
     private final JwtUtility jwtUtility;
 

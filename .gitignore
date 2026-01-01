@@ -1,3 +1,5 @@
+.env
+
 # Build artifacts (ALL SERVICES)
 **/target/
 **/build/

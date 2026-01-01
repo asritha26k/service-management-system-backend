@@ -32,7 +32,6 @@ public class JwtAuthenticationWebFilterConfig {
             "/technician-service/api/technicians/apply",
             "/notification-service/api/auth/login",
             "/service-operations-service/api/auth/login",
-            "/config-server/api/auth/login",
             "/eureka-server/api/auth/login"
     };
 

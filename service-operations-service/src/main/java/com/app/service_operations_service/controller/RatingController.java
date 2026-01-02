@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.app.service_operations_service.dto.rating.CreateRatingRequest;
 import com.app.service_operations_service.dto.rating.RatingResponse;
 import com.app.service_operations_service.dto.rating.TechnicianAverageRatingResponse;
+import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.service.RatingService;
 
 import jakarta.validation.Valid;
@@ -31,10 +32,11 @@ public class RatingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RatingResponse createRating(
+    public IdMessageResponse createRating(
             @RequestHeader("X-User-Id") String customerId,
             @Valid @RequestBody CreateRatingRequest request) {
-        return ratingService.createRating(customerId, request);
+        RatingResponse response = ratingService.createRating(customerId, request);
+        return new IdMessageResponse(response.getId(), "Rating submitted successfully");
     }
 
     @GetMapping("/technician/{technicianId}")

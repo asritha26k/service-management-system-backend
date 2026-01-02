@@ -22,6 +22,7 @@ import com.app.service_operations_service.dto.requests.ServiceRequestStatsRespon
 import com.app.service_operations_service.dto.requests.ServiceRequestWithCustomerResponse;
 import com.app.service_operations_service.dto.requests.ServiceRequestWithTechnicianResponse;
 import com.app.service_operations_service.dto.requests.UpdateStatusRequest;
+import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.exception.UnauthorizedException;
 import com.app.service_operations_service.security.RequestUser;
 import com.app.service_operations_service.service.ServiceRequestService;
@@ -58,10 +59,11 @@ public class ServiceRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ServiceRequestResponse create(RequestUser user, @Valid @RequestBody CreateServiceRequest request) {
+    public IdMessageResponse create(RequestUser user, @Valid @RequestBody CreateServiceRequest request) {
         String customerId = validateAndGetUserId(user);
         log.info("Creating service request for customer: {}", customerId);
-        return serviceRequestService.create(request, customerId);
+        ServiceRequestResponse response = serviceRequestService.create(request, customerId);
+        return new IdMessageResponse(response.getId(), "Service request created successfully");
     }
 
     @GetMapping
@@ -128,60 +130,66 @@ public class ServiceRequestController {
     }
 
     @PutMapping("/{id}/assign")
-    public ServiceRequestResponse assign(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void assign(
             @PathVariable("id") String id,
             @Valid @RequestBody AssignRequest request) {
         ValidationUtil.validateNotBlank(id, "requestId");
         log.info("Assigning technician {} to request {}", request.getTechnicianId(), id);
-        return serviceRequestService.assign(id, request);
+        serviceRequestService.assign(id, request);
     }
 
     @PutMapping("/{id}/status")
-    public ServiceRequestResponse updateStatus(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateStatus(
             @PathVariable("id") String id,
             @Valid @RequestBody UpdateStatusRequest request) {
         ValidationUtil.validateNotBlank(id, "requestId");
         log.info("Updating status of request {} to {}", id, request.getStatus());
-        return serviceRequestService.updateStatus(id, request);
+        serviceRequestService.updateStatus(id, request);
     }
 
     @PutMapping("/{id}/cancel")
-    public ServiceRequestResponse cancel(@PathVariable("id") String id, RequestUser user) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancel(@PathVariable("id") String id, RequestUser user) {
         String userId = validateAndGetUserId(user);
         ValidationUtil.validateNotBlank(id, "requestId");
         log.info("Cancelling request {} by user: {}", id, userId);
-        return serviceRequestService.cancel(id, userId);
+        serviceRequestService.cancel(id, userId);
     }
 
     @PutMapping("/{id}/complete")
-    public ServiceRequestResponse completeByTechnician(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void completeByTechnician(
             @PathVariable("id") String requestId,
             RequestUser user) {
         String userId = validateAndGetUserId(user);
         ValidationUtil.validateNotBlank(requestId, "requestId");
         log.info("Completing request {} by technician: {}", requestId, userId);
-        return serviceRequestService.completeByTechnician(requestId, userId);
+        serviceRequestService.completeByTechnician(requestId, userId);
     }
 
     @PutMapping("/{id}/accept")
-    public ServiceRequestResponse accept(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void accept(
             @PathVariable("id") String id,
             RequestUser user) {
         String userId = validateAndGetUserId(user);
         ValidationUtil.validateNotBlank(id, "requestId");
         log.info("Accepting work on request {} by technician: {}", id, userId);
-        return serviceRequestService.acceptWork(id, userId);
+        serviceRequestService.acceptWork(id, userId);
     }
 
     @PutMapping("/{id}/reject")
-    public ServiceRequestResponse reject(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reject(
             @PathVariable("id") String id,
             @Valid @RequestBody AcceptRejectRequest request,
             RequestUser user) {
         String userId = validateAndGetUserId(user);
         ValidationUtil.validateNotBlank(id, "requestId");
         log.info("Rejecting work on request {} by technician: {}", id, userId);
-        return serviceRequestService.rejectWork(id, userId, request.getReason());
+        serviceRequestService.rejectWork(id, userId, request.getReason());
     }
 
     @GetMapping("/stats")

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.app.identity_service.dto.UpdateUserProfileRequest;
 import com.app.identity_service.dto.UserProfileResponse;
+import com.app.identity_service.dto.IdMessageResponse;
 import com.app.identity_service.service.UserProfileService;
 import com.app.identity_service.util.SecurityUtil;
 
@@ -35,7 +36,7 @@ public class UserProfileController {
 
 	//creates user profile endpoints
 	@PostMapping
-	public ResponseEntity<UserProfileResponse> createProfile(@Valid @RequestBody UpdateUserProfileRequest request) {
+	public ResponseEntity<IdMessageResponse> createProfile(@Valid @RequestBody UpdateUserProfileRequest request) {
 		String userId = securityUtil.extractUserIdFromContext();
 		if (userId == null || userId.isBlank()) {
 			log.warn("Create profile attempted without authentication");
@@ -44,7 +45,8 @@ public class UserProfileController {
 		log.info("Creating user profile for user: {}", userId);
 		UserProfileResponse response = userProfileService.createProfile(userId, request);
 		log.info("User profile created successfully for: {}", userId);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(new IdMessageResponse(response.getUserId(), "User profile created successfully"));
 	}
 
 	//get user profile endpoint
@@ -77,7 +79,7 @@ public class UserProfileController {
 	 //Update user profile (admin/manager can update any user)
 
 	@PutMapping("/{userId}")
-	public ResponseEntity<UserProfileResponse> updateProfile(
+	public ResponseEntity<Void> updateProfile(
 			@PathVariable String userId,
 			@Valid @RequestBody UpdateUserProfileRequest request) {
 		if (userId == null || userId.isBlank()) {
@@ -85,16 +87,16 @@ public class UserProfileController {
 			throw new IllegalArgumentException("User ID is required");
 		}
 		log.info("Updating user profile for: {}", userId);
-		UserProfileResponse response = userProfileService.updateProfile(userId, request);
+		userProfileService.updateProfile(userId, request);
 		log.info("User profile updated successfully for: {}", userId);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.noContent().build();
 	}
 
 	
 	 // Update own profile (self-service - extracts userId from JWT token)
 	 
 	@PutMapping
-	public ResponseEntity<UserProfileResponse> updateMyProfile(
+	public ResponseEntity<Void> updateMyProfile(
 			@Valid @RequestBody UpdateUserProfileRequest request) {
 		String userId = securityUtil.extractUserIdFromContext();
 		if (userId == null || userId.isBlank()) {
@@ -102,8 +104,8 @@ public class UserProfileController {
 			throw new IllegalArgumentException("User authentication is required");
 		}
 		log.info("User updating own profile: {}", userId);
-		UserProfileResponse response = userProfileService.updateProfile(userId, request);
+		userProfileService.updateProfile(userId, request);
 		log.info("Own profile updated successfully for: {}", userId);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.noContent().build();
 	}
 }

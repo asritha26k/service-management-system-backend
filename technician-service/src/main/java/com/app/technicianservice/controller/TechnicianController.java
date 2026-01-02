@@ -18,6 +18,7 @@ import com.app.technicianservice.dto.ApplicationReviewResponse;
 import com.app.technicianservice.dto.ApplicationSubmissionResponse;
 import com.app.technicianservice.dto.AvailabilityUpdateRequest;
 import com.app.technicianservice.dto.CreateProfileRequest;
+import com.app.technicianservice.dto.IdMessageResponse;
 import com.app.technicianservice.dto.StatsResponse;
 import com.app.technicianservice.dto.SubmitRatingRequest;
 import com.app.technicianservice.dto.TechnicianApplicationRequest;
@@ -50,11 +51,12 @@ public class TechnicianController {
 
     @PostMapping("/profile")
     @ResponseStatus(HttpStatus.CREATED)
-    public TechnicianProfileResponse createProfile(
+    public IdMessageResponse createProfile(
             RequestUser user,
             @Valid @RequestBody CreateProfileRequest request
     ) {
-        return technicianService.createProfile(user, request);
+        TechnicianProfileResponse profile = technicianService.createProfile(user, request);
+        return new IdMessageResponse(profile.getId(), "Technician profile created successfully");
     }
 
     @GetMapping("/available")
@@ -83,11 +85,12 @@ public class TechnicianController {
     }
 
     @PutMapping("/my/availability")
-    public TechnicianProfileResponse updateMyAvailability(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateMyAvailability(
             RequestUser user,
             @Valid @RequestBody AvailabilityUpdateRequest request
     ) {
-        return technicianService.updateMyAvailability(user, request);
+        technicianService.updateMyAvailability(user, request);
     }
 
     @PostMapping("/apply")
@@ -104,32 +107,35 @@ public class TechnicianController {
     }
 
     @PostMapping("/applications/{id}/approve")
-    public ApplicationReviewResponse approve(
+    public IdMessageResponse approve(
             RequestUser user,
             @PathVariable("id") String id
     ) {
-        return applicationService.approveApplication(user, id);
+        ApplicationReviewResponse response = applicationService.approveApplication(user, id);
+        return new IdMessageResponse(response.getId(), "Application approved successfully");
     }
 
     @PostMapping("/applications/{id}/reject")
-    public ApplicationReviewResponse reject(
+    public IdMessageResponse reject(
             RequestUser user,
             @PathVariable("id") String id,
             @Valid @RequestBody ApplicationRejectionRequest request
     ) {
-        return applicationService.rejectApplication(user, id, request.getReason());
+        ApplicationReviewResponse response = applicationService.rejectApplication(user, id, request.getReason());
+        return new IdMessageResponse(response.getId(), "Application rejected successfully");
     }
 
     // ============ Rating Endpoints (MUST come before other /{id}/... patterns) ============
 
     @PostMapping("/{technicianId}/ratings")
     @ResponseStatus(HttpStatus.CREATED)
-    public TechnicianRatingResponse submitRating(
+    public IdMessageResponse submitRating(
             RequestUser user,
             @PathVariable("technicianId") String technicianId,
             @Valid @RequestBody SubmitRatingRequest request
     ) {
-        return technicianService.submitRating(user.userId(), technicianId, request);
+        TechnicianRatingResponse rating = technicianService.submitRating(user.userId(), technicianId, request);
+        return new IdMessageResponse(rating.getId(), "Rating submitted successfully");
     }
 
     @GetMapping("/{technicianId}/ratings")
@@ -155,23 +161,26 @@ public class TechnicianController {
     }
 
     @PutMapping("/{id}/workload")
-    public WorkloadResponse updateWorkload(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateWorkload(
             @PathVariable("id") String id,
             @RequestParam("current") Integer currentWorkload
     ) {
-        return technicianService.updateWorkload(id, currentWorkload);
+        technicianService.updateWorkload(id, currentWorkload);
     }
 
     @PutMapping("/{id}/availability")
-    public TechnicianProfileResponse updateAvailability(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateAvailability(
             RequestUser user,
             @PathVariable("id") String id,
             @Valid @RequestBody AvailabilityUpdateRequest request
     ) {
-        return technicianService.updateAvailability(user, id, request);
+        technicianService.updateAvailability(user, id, request);
     }
 
     @PutMapping("/{id}/rating")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateRating(
             RequestUser user,
             @PathVariable("id") String id,

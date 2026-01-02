@@ -1,15 +1,7 @@
 package com.app.notification_service.controller;
 
-import com.app.notification_service.dto.LoginCredentialsRequest;
-import com.app.notification_service.dto.NotificationRequest;
-import com.app.notification_service.dto.NotificationResponse;
-import com.app.notification_service.entity.Notification;
-import com.app.notification_service.exception.BadRequestException;
-import com.app.notification_service.exception.NotificationFetchException;
-import com.app.notification_service.security.RequestUser;
-import com.app.notification_service.service.NotificationService;
-import jakarta.validation.Valid;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,6 +13,18 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.app.notification_service.dto.IdMessageResponse;
+import com.app.notification_service.dto.LoginCredentialsRequest;
+import com.app.notification_service.dto.NotificationRequest;
+import com.app.notification_service.dto.NotificationResponse;
+import com.app.notification_service.entity.Notification;
+import com.app.notification_service.exception.BadRequestException;
+import com.app.notification_service.exception.NotificationFetchException;
+import com.app.notification_service.security.RequestUser;
+import com.app.notification_service.service.NotificationService;
+
+import jakarta.validation.Valid;
 
 // Notification Controller
 // Handles all notification-related API endpoints
@@ -37,12 +41,13 @@ public class NotificationController {
 
     // Send a notification to a user
     @PostMapping("/send")
-    public ResponseEntity<NotificationResponse> sendNotification(@Valid @RequestBody NotificationRequest request) {
+    public ResponseEntity<IdMessageResponse> sendNotification(@Valid @RequestBody NotificationRequest request) {
         log.info("POST /api/notifications/send - Sending notification for userId: {}", request.getUserId());
         log.debug("Notification type: {}, subject: {}", request.getType(), request.getSubject());
         NotificationResponse response = notificationService.sendNotification(request);
         log.info("Notification sent successfully with ID: {}", response.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(new IdMessageResponse(response.getId(), "Notification sent successfully"));
     }
 
     // Send login credentials to a user via email
@@ -89,7 +94,7 @@ public class NotificationController {
 
     // Mark a notification as read by ID
     @PutMapping("/{id}/read")
-    public ResponseEntity<NotificationResponse> markAsRead(@PathVariable String id) {
+    public ResponseEntity<Void> markAsRead(@PathVariable String id) {
         log.info("PUT /api/notifications/{}/read - Marking notification as read", id);
         
         if (id == null || id.isBlank()) {
@@ -98,9 +103,9 @@ public class NotificationController {
         }
         
         log.debug("Marking notification {} as read", id);
-        NotificationResponse response = notificationService.markAsRead(id);
+        notificationService.markAsRead(id);
         log.info("Notification {} marked as read successfully", id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
     // Helper method to validate and extract user ID from RequestUser

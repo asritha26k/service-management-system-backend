@@ -2,6 +2,7 @@ package com.app.service_operations_service.controller;
 
 import com.app.service_operations_service.service.CatalogService;
 import com.app.service_operations_service.dto.catalog.*;
+import com.app.service_operations_service.dto.IdMessageResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +21,9 @@ public class CatalogController {
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    public ServiceCategoryResponse createCategory(@Valid @RequestBody CreateCategoryRequest request) {
-        return catalogService.createCategory(request);
+    public IdMessageResponse createCategory(@Valid @RequestBody CreateCategoryRequest request) {
+        ServiceCategoryResponse response = catalogService.createCategory(request);
+        return new IdMessageResponse(response.getId(), "Service category created successfully");
     }
 
     @GetMapping("/categories")
@@ -31,8 +33,9 @@ public class CatalogController {
 
     @PostMapping("/services")
     @ResponseStatus(HttpStatus.CREATED)
-    public ServiceItemResponse createService(@Valid @RequestBody CreateServiceItemRequest request) {
-        return catalogService.createService(request);
+    public IdMessageResponse createService(@Valid @RequestBody CreateServiceItemRequest request) {
+        ServiceItemResponse response = catalogService.createService(request);
+        return new IdMessageResponse(response.getId(), "Service item created successfully");
     }
 
     @GetMapping("/services")
@@ -45,10 +48,11 @@ public class CatalogController {
         return catalogService.getServiceById(id);
     }
     @PutMapping("/services/{id}")
-    public ServiceItemResponse updateService(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateService(
             @PathVariable("id") String id,
             @Valid @RequestBody UpdateServiceItemRequest request) {
-        return catalogService.updateService(id, request);
+        catalogService.updateService(id, request);
     }
 
     @GetMapping("/services/category/{categoryId}")

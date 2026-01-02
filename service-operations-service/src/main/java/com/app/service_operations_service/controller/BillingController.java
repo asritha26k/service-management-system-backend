@@ -16,6 +16,7 @@ import com.app.service_operations_service.dto.billing.CreateInvoiceRequest;
 import com.app.service_operations_service.dto.billing.InvoiceResponse;
 import com.app.service_operations_service.dto.billing.PaymentUpdateRequest;
 import com.app.service_operations_service.dto.billing.RevenueReportResponse;
+import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.security.RequestUser;
 import com.app.service_operations_service.service.BillingService;
 
@@ -33,8 +34,9 @@ public class BillingController {
 
     @PostMapping("/invoices")
     @ResponseStatus(HttpStatus.CREATED)
-    public InvoiceResponse createInvoice(@Valid @RequestBody CreateInvoiceRequest request) {
-        return billingService.createInvoice(request);
+    public IdMessageResponse createInvoice(@Valid @RequestBody CreateInvoiceRequest request) {
+        InvoiceResponse response = billingService.createInvoice(request);
+        return new IdMessageResponse(response.getId(), "Invoice created successfully");
     }
 
     @GetMapping("/invoices/{id}")
@@ -59,13 +61,15 @@ public class BillingController {
     }
 
     @PostMapping("/invoices/{id}/pay")
-    public InvoiceResponse payInvoice(@PathVariable("id") String id) {
-        return billingService.payInvoice(id);
+    public IdMessageResponse payInvoice(@PathVariable("id") String id) {
+        InvoiceResponse response = billingService.payInvoice(id);
+        return new IdMessageResponse(response.getId(), "Invoice paid successfully");
     }
 
     @PutMapping("/invoices/{id}/payment")
-    public InvoiceResponse updatePayment(@PathVariable("id") String id, @Valid @RequestBody PaymentUpdateRequest request) {
-        return billingService.updatePayment(id, request);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updatePayment(@PathVariable("id") String id, @Valid @RequestBody PaymentUpdateRequest request) {
+        billingService.updatePayment(id, request);
     }
 
     @GetMapping("/reports/revenue")

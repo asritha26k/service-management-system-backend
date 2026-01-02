@@ -31,6 +31,11 @@ public class CatalogController {
         return catalogService.listCategories();
     }
 
+    @GetMapping("/categories/{id}")
+    public ServiceCategoryResponse getCategory(@PathVariable("id") String id) {
+        return catalogService.getCategoryById(id);
+    }
+
     @PostMapping("/services")
     @ResponseStatus(HttpStatus.CREATED)
     public IdMessageResponse createService(@Valid @RequestBody CreateServiceItemRequest request) {

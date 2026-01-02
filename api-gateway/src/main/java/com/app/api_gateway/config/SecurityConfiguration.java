@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .addFilterBefore(jwtAuthWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterAt(jwtAuthWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
@@ -71,7 +71,7 @@ public class SecurityConfiguration {
 
                         .pathMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/api/catalog/categories", "/api/catalog/services").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/catalog/categories", "/api/catalog/categories/**", "/api/catalog/services", "/api/catalog/services/**").permitAll()
                         .pathMatchers("/api/catalog/categories/**", "/api/catalog/services/**")
                         .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_CUSTOMER)
 

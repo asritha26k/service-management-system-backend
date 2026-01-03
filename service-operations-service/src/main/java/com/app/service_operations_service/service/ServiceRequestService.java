@@ -25,6 +25,7 @@ import com.app.service_operations_service.dto.requests.ServiceRequestStatsRespon
 import com.app.service_operations_service.dto.requests.ServiceRequestWithCustomerResponse;
 import com.app.service_operations_service.dto.requests.ServiceRequestWithTechnicianResponse;
 import com.app.service_operations_service.dto.requests.UpdateStatusRequest;
+import com.app.service_operations_service.dto.requests.RescheduleServiceRequest;
 import com.app.service_operations_service.exception.BadRequestException;
 import com.app.service_operations_service.exception.ExternalServiceException;
 import com.app.service_operations_service.exception.NotFoundException;
@@ -314,12 +315,15 @@ public class ServiceRequestService {
             throw new UnauthorizedException("You can only cancel your own service requests");
         }
         
-        // Business Rule: Cannot cancel already completed or cancelled requests
-        if (request.getStatus() == RequestStatus.COMPLETED) {
-            log.warn("Attempt to cancel completed request: {}", id);
-            throw new BadRequestException("Cannot cancel a completed service request");
+        // Business Rule: Cannot cancel assigned/accepted/in-progress/completed/cancelled requests
+        if (request.getStatus() == RequestStatus.ASSIGNED ||
+                request.getStatus() == RequestStatus.ACCEPTED ||
+                request.getStatus() == RequestStatus.IN_PROGRESS ||
+                request.getStatus() == RequestStatus.COMPLETED) {
+            log.warn("Attempt to cancel non-requested request (status {}): {}", request.getStatus(), id);
+            throw new BadRequestException("Cannot cancel a request after it has been assigned or processed");
         }
-        
+
         if (request.getStatus() == RequestStatus.CANCELLED) {
             log.warn("Attempt to cancel already cancelled request: {}", id);
             throw new BadRequestException("Service request is already cancelled");
@@ -348,6 +352,47 @@ public class ServiceRequestService {
                 "Your request " + saved.getRequestNumber() + " has been cancelled."
         );
         
+        return toResponse(saved);
+    }
+
+    public ServiceRequestResponse reschedule(String id, String userId, RescheduleServiceRequest payload) {
+        ValidationUtil.validateNotBlank(id, "requestId");
+        ValidationUtil.validateNotBlank(userId, "userId");
+
+        ServiceRequest request = fetch(id);
+
+        // Only the customer who created the request can reschedule
+        if (!request.getCustomerId().equals(userId)) {
+            log.warn("Unauthorized reschedule attempt: User {} tried to reschedule request of customer {}", userId, request.getCustomerId());
+            throw new UnauthorizedException("You can only reschedule your own service requests");
+        }
+
+        // Cannot reschedule after assignment or when already processed
+        if (request.getStatus() == RequestStatus.ASSIGNED ||
+                request.getStatus() == RequestStatus.ACCEPTED ||
+                request.getStatus() == RequestStatus.IN_PROGRESS ||
+                request.getStatus() == RequestStatus.COMPLETED ||
+                request.getStatus() == RequestStatus.CANCELLED) {
+            log.warn("Attempt to reschedule non-requested request (status {}): {}", request.getStatus(), id);
+            throw new BadRequestException("Cannot reschedule a request after it has been assigned or processed");
+        }
+
+        // Reuse preferred date validation: must be in the future
+        if (payload.getPreferredDate() != null && payload.getPreferredDate().isBefore(Instant.now())) {
+            throw new BadRequestException("Preferred date must be in the future");
+        }
+
+        request.setPreferredDate(payload.getPreferredDate());
+        ServiceRequest saved = requestRepository.save(request);
+
+        log.info("Service request rescheduled by customer: {} for request: {}", userId, id);
+
+        notifyCustomer(
+                saved.getCustomerId(),
+                "Request Rescheduled",
+                "Your request " + saved.getRequestNumber() + " has been rescheduled."
+        );
+
         return toResponse(saved);
     }
 

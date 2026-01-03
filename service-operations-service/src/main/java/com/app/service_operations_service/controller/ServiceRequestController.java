@@ -22,6 +22,7 @@ import com.app.service_operations_service.dto.requests.ServiceRequestStatsRespon
 import com.app.service_operations_service.dto.requests.ServiceRequestWithCustomerResponse;
 import com.app.service_operations_service.dto.requests.ServiceRequestWithTechnicianResponse;
 import com.app.service_operations_service.dto.requests.UpdateStatusRequest;
+import com.app.service_operations_service.dto.requests.RescheduleServiceRequest;
 import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.exception.UnauthorizedException;
 import com.app.service_operations_service.security.RequestUser;
@@ -156,6 +157,18 @@ public class ServiceRequestController {
         ValidationUtil.validateNotBlank(id, "requestId");
         log.info("Cancelling request {} by user: {}", id, userId);
         serviceRequestService.cancel(id, userId);
+    }
+
+    @PutMapping("/{id}/reschedule")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reschedule(
+            @PathVariable("id") String id,
+            @Valid @RequestBody RescheduleServiceRequest request,
+            RequestUser user) {
+        String userId = validateAndGetUserId(user);
+        ValidationUtil.validateNotBlank(id, "requestId");
+        log.info("Rescheduling request {} by user: {}", id, userId);
+        serviceRequestService.reschedule(id, userId, request);
     }
 
     @PutMapping("/{id}/complete")

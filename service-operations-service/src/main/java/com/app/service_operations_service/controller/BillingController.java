@@ -16,6 +16,7 @@ import com.app.service_operations_service.dto.billing.CreateInvoiceRequest;
 import com.app.service_operations_service.dto.billing.InvoiceResponse;
 import com.app.service_operations_service.dto.billing.PaymentUpdateRequest;
 import com.app.service_operations_service.dto.billing.RevenueReportResponse;
+import com.app.service_operations_service.dto.billing.MonthlyRevenueEntry;
 import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.security.RequestUser;
 import com.app.service_operations_service.service.BillingService;
@@ -75,5 +76,10 @@ public class BillingController {
     @GetMapping("/reports/revenue")
     public RevenueReportResponse revenueReport() {
         return billingService.revenueReport();
+    }
+
+    @GetMapping("/reports/revenue/monthly")
+    public List<MonthlyRevenueEntry> monthlyRevenue() {
+        return billingService.monthlyRevenue();
     }
 }

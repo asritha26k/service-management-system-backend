@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .addFilterBefore(jwtAuthWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterAt(jwtAuthWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
@@ -71,9 +71,29 @@ public class SecurityConfiguration {
 
                         .pathMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/api/catalog/categories", "/api/catalog/services").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/catalog/categories", "/api/catalog/categories/**", "/api/catalog/services", "/api/catalog/services/**").permitAll()
                         .pathMatchers("/api/catalog/categories/**", "/api/catalog/services/**")
                         .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER, ROLE_CUSTOMER)
+
+                        // Dashboard & reporting endpoints (direct and service-discovery prefixed)
+                        .pathMatchers(
+                                "/api/dashboard/summary",
+                                "/api/dashboard/category-stats",
+                                "/*/api/dashboard/summary",
+                                "/*/api/dashboard/category-stats")
+                        .hasRole(ROLE_ADMIN)
+                        .pathMatchers(
+                                "/api/dashboard/technician-workload",
+                                "/api/dashboard/resolution-time",
+                                "/*/api/dashboard/technician-workload",
+                                "/*/api/dashboard/resolution-time")
+                        .hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
+                        .pathMatchers(
+                                "/api/billing/reports/revenue",
+                                "/api/billing/reports/revenue/monthly",
+                                "/*/api/billing/reports/revenue",
+                                "/*/api/billing/reports/revenue/monthly")
+                        .hasRole(ROLE_ADMIN)
 
                         .pathMatchers(HttpMethod.POST, "/api/service-requests").hasRole(ROLE_CUSTOMER)
                         .pathMatchers(HttpMethod.GET, "/api/service-requests").hasAnyRole(ROLE_ADMIN, ROLE_MANAGER)
@@ -82,6 +102,8 @@ public class SecurityConfiguration {
 
                         .pathMatchers("/api/service-requests/customer/**").hasRole(ROLE_CUSTOMER)
                         .pathMatchers("/api/service-requests/my-requests/**").hasRole(ROLE_CUSTOMER)
+                        .pathMatchers("/api/service-requests/*/cancel", "/api/service-requests/*/reschedule")
+                        .hasRole(ROLE_CUSTOMER)
                         .pathMatchers("/api/service-requests/customer/*/with-technician").hasRole(ROLE_CUSTOMER)
                         .pathMatchers("/api/service-requests/technician/my-requests").hasRole(ROLE_TECHNICIAN)
                         .pathMatchers("/api/service-requests/*/complete").hasRole(ROLE_TECHNICIAN)

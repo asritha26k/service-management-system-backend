@@ -43,6 +43,12 @@ public class CatalogService {
                 .toList();
     }
 
+    public ServiceCategoryResponse getCategoryById(String id) {
+        ServiceCategory category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Service category not found: " + id));
+        return toCategoryResponse(category);
+    }
+
     public ServiceItemResponse createService(CreateServiceItemRequest request) {
         ServiceItem item = new ServiceItem();
         item.setCategoryId(request.getCategoryId());

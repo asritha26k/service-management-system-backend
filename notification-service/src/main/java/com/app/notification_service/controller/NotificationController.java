@@ -25,6 +25,7 @@ import com.app.notification_service.security.RequestUser;
 import com.app.notification_service.service.NotificationService;
 
 import jakarta.validation.Valid;
+import org.springframework.web.server.ResponseStatusException;
 
 // Notification Controller
 // Handles all notification-related API endpoints
@@ -94,17 +95,16 @@ public class NotificationController {
 
     // Mark a notification as read by ID
     @PutMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable String id) {
-        log.info("PUT /api/notifications/{}/read - Marking notification as read", id);
-        
+    public ResponseEntity<Void> markAsRead(@PathVariable("id") String id) {
+
         if (id == null || id.isBlank()) {
-            log.warn("Notification ID cannot be empty");
-            throw new BadRequestException("Notification ID cannot be empty");
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Notification id must not be empty"
+            );
         }
-        
-        log.debug("Marking notification {} as read", id);
+
         notificationService.markAsRead(id);
-        log.info("Notification {} marked as read successfully", id);
         return ResponseEntity.noContent().build();
     }
 

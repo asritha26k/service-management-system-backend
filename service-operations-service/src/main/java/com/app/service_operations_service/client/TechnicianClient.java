@@ -3,6 +3,7 @@ package com.app.service_operations_service.client;
 import java.util.Map;
 
 import com.app.service_operations_service.client.fallback.TechnicianClientFallback;
+import java.util.List;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,4 +37,9 @@ public interface TechnicianClient {
     @CircuitBreaker(name = "technician-service", fallbackMethod = "getStatsFallback")
     Map<String, Object> getStats();
 
+    @GetMapping("/suggestions")
+    @CircuitBreaker(name = "technician-service", fallbackMethod = "getSuggestionsFallback")
+    List<TechnicianProfileResponse> getSuggestions(
+            @RequestParam("location") String location,
+            @RequestParam("skills") List<String> skills);
 }

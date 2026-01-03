@@ -3,7 +3,11 @@ package com.app.service_operations_service.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
@@ -11,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.service_operations_service.dto.billing.CreateInvoiceRequest;
 import com.app.service_operations_service.dto.billing.InvoiceResponse;
+import com.app.service_operations_service.dto.billing.MonthlyRevenueEntry;
 import com.app.service_operations_service.dto.billing.PaymentUpdateRequest;
 import com.app.service_operations_service.dto.billing.RevenueReportResponse;
 import com.app.service_operations_service.exception.BadRequestException;
@@ -168,6 +173,50 @@ public class BillingService {
         response.setInvoiceCount(invoices.size());
         response.setPaidCount(paidCount);
         return response;
+    }
+
+    public List<MonthlyRevenueEntry> monthlyRevenue() {
+        List<Invoice> invoices = invoiceRepository.findAll().stream()
+                .filter(i -> i.getPaymentStatus() == PaymentStatus.PAID)
+                .toList();
+
+        Map<String, List<Invoice>> grouped = invoices.stream()
+                .collect(Collectors.groupingBy(inv -> {
+                    ZonedDateTime zdt = inv.getCreatedAt()
+                            .atZone(ZoneId.systemDefault());
+                    int year = zdt.getYear();
+                    int month = zdt.getMonthValue();
+                    return year + "-" + month;
+                }));
+
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    List<Invoice> group = entry.getValue();
+                    if (group.isEmpty()) {
+                        return null;
+                    }
+                    ZonedDateTime zdt = group.get(0).getCreatedAt().atZone(ZoneId.systemDefault());
+                    int year = zdt.getYear();
+                    int month = zdt.getMonthValue();
+
+                    MonthlyRevenueEntry mr = new MonthlyRevenueEntry();
+                    mr.setYear(year);
+                    mr.setMonth(month);
+                    mr.setTotalRevenue(group.stream()
+                            .map(Invoice::getTotalAmount)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                    mr.setPaidInvoiceCount(group.size());
+                    return mr;
+                })
+                .filter(Objects::nonNull)
+                .sorted((a, b) -> {
+                    if (a.getYear() != b.getYear()) {
+                        return Integer.compare(a.getYear(), b.getYear());
+                    }
+                    return Integer.compare(a.getMonth(), b.getMonth());
+                })
+                .toList();
     }
 
     private InvoiceResponse toResponse(Invoice invoice) {

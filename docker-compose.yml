@@ -20,6 +20,18 @@ services:
       retries: 5
     networks:
       - app-net
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - app-net
 
   api-gateway:
     build: ./api-gateway
@@ -32,6 +44,8 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+      config-server:
+        condition: service_started
     networks:
       - app-net
 
@@ -119,8 +133,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
@@ -149,6 +163,8 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+      config-server:
+        condition: service_started
       mysql-identity:
         condition: service_healthy
     networks:
@@ -173,6 +189,8 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+      config-server:
+        condition: service_started
       mysql-notification:
         condition: service_healthy
       rabbitmq:
@@ -191,6 +209,8 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+      config-server:
+        condition: service_started
       mongodb:
         condition: service_healthy
     networks:
@@ -208,6 +228,8 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+      config-server:
+        condition: service_started
       mysql-technician:
         condition: service_healthy
     networks:

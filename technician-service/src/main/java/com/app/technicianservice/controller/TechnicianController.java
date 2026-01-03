@@ -41,8 +41,7 @@ public class TechnicianController {
 
     public TechnicianController(
             TechnicianService technicianService,
-            TechnicianApplicationService applicationService
-    ) {
+            TechnicianApplicationService applicationService) {
         this.technicianService = technicianService;
         this.applicationService = applicationService;
     }
@@ -53,8 +52,7 @@ public class TechnicianController {
     @ResponseStatus(HttpStatus.CREATED)
     public IdMessageResponse createProfile(
             RequestUser user,
-            @Valid @RequestBody CreateProfileRequest request
-    ) {
+            @Valid @RequestBody CreateProfileRequest request) {
         TechnicianProfileResponse profile = technicianService.createProfile(user, request);
         return new IdMessageResponse(profile.getId(), "Technician profile created successfully");
     }
@@ -74,6 +72,13 @@ public class TechnicianController {
         return technicianService.getByUserId(user.userId());
     }
 
+    @GetMapping("/suggestions")
+    public List<TechnicianProfileResponse> getSuggestions(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) List<String> skills) {
+        return technicianService.findSuggestions(location, skills);
+    }
+
     @GetMapping("/by-user/{userId}")
     public TechnicianProfileResponse getByUserId(@PathVariable("userId") String userId) {
         return technicianService.getByUserId(userId);
@@ -88,16 +93,14 @@ public class TechnicianController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateMyAvailability(
             RequestUser user,
-            @Valid @RequestBody AvailabilityUpdateRequest request
-    ) {
+            @Valid @RequestBody AvailabilityUpdateRequest request) {
         technicianService.updateMyAvailability(user, request);
     }
 
     @PostMapping("/apply")
     @ResponseStatus(HttpStatus.CREATED)
     public ApplicationSubmissionResponse apply(
-            @Valid @RequestBody TechnicianApplicationRequest request
-    ) {
+            @Valid @RequestBody TechnicianApplicationRequest request) {
         return applicationService.applyForTechnician(request);
     }
 
@@ -109,8 +112,7 @@ public class TechnicianController {
     @PostMapping("/applications/{id}/approve")
     public IdMessageResponse approve(
             RequestUser user,
-            @PathVariable("id") String id
-    ) {
+            @PathVariable("id") String id) {
         ApplicationReviewResponse response = applicationService.approveApplication(user, id);
         return new IdMessageResponse(response.getId(), "Application approved successfully");
     }
@@ -119,37 +121,34 @@ public class TechnicianController {
     public IdMessageResponse reject(
             RequestUser user,
             @PathVariable("id") String id,
-            @Valid @RequestBody ApplicationRejectionRequest request
-    ) {
+            @Valid @RequestBody ApplicationRejectionRequest request) {
         ApplicationReviewResponse response = applicationService.rejectApplication(user, id, request.getReason());
         return new IdMessageResponse(response.getId(), "Application rejected successfully");
     }
 
-    // ============ Rating Endpoints (MUST come before other /{id}/... patterns) ============
+    // ============ Rating Endpoints (MUST come before other /{id}/... patterns)
+    // ============
 
     @PostMapping("/{technicianId}/ratings")
     @ResponseStatus(HttpStatus.CREATED)
     public IdMessageResponse submitRating(
             RequestUser user,
             @PathVariable("technicianId") String technicianId,
-            @Valid @RequestBody SubmitRatingRequest request
-    ) {
+            @Valid @RequestBody SubmitRatingRequest request) {
         TechnicianRatingResponse rating = technicianService.submitRating(user.userId(), technicianId, request);
         return new IdMessageResponse(rating.getId(), "Rating submitted successfully");
     }
 
     @GetMapping("/{technicianId}/ratings")
     public List<TechnicianRatingResponse> getTechnicianRatings(
-            @PathVariable("technicianId") String technicianId
-    ) {
+            @PathVariable("technicianId") String technicianId) {
         return technicianService.getTechnicianRatings(technicianId);
     }
 
     @GetMapping("/{technicianId}/ratings/my-rating")
     public TechnicianRatingResponse getMyRating(
             RequestUser user,
-            @PathVariable("technicianId") String technicianId
-    ) {
+            @PathVariable("technicianId") String technicianId) {
         return technicianService.getCustomerRating(technicianId, user.userId());
     }
 
@@ -164,8 +163,7 @@ public class TechnicianController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateWorkload(
             @PathVariable("id") String id,
-            @RequestParam("current") Integer currentWorkload
-    ) {
+            @RequestParam("current") Integer currentWorkload) {
         technicianService.updateWorkload(id, currentWorkload);
     }
 
@@ -174,8 +172,7 @@ public class TechnicianController {
     public void updateAvailability(
             RequestUser user,
             @PathVariable("id") String id,
-            @Valid @RequestBody AvailabilityUpdateRequest request
-    ) {
+            @Valid @RequestBody AvailabilityUpdateRequest request) {
         technicianService.updateAvailability(user, id, request);
     }
 
@@ -184,12 +181,12 @@ public class TechnicianController {
     public void updateRating(
             RequestUser user,
             @PathVariable("id") String id,
-            @RequestBody Double rating
-    ) {
+            @RequestBody Double rating) {
         technicianService.updateRating(user, id, rating);
     }
 
-    // ============ Generic /{id} endpoint (MUST BE LAST to avoid matching other patterns) ============
+    // ============ Generic /{id} endpoint (MUST BE LAST to avoid matching other
+    // patterns) ============
 
     @GetMapping("/{id}")
     public TechnicianProfileResponse getById(@PathVariable("id") String id) {

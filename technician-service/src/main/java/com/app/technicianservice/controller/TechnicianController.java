@@ -72,13 +72,6 @@ public class TechnicianController {
         return technicianService.getByUserId(user.userId());
     }
 
-    @GetMapping("/suggestions")
-    public List<TechnicianProfileResponse> getSuggestions(
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) List<String> skills) {
-        return technicianService.findSuggestions(location, skills);
-    }
-
     @GetMapping("/by-user/{userId}")
     public TechnicianProfileResponse getByUserId(@PathVariable("userId") String userId) {
         return technicianService.getByUserId(userId);

@@ -4,6 +4,7 @@ import com.app.technicianservice.dto.*;
 import com.app.technicianservice.exception.BadRequestException;
 import com.app.technicianservice.exception.NotFoundException;
 import com.app.technicianservice.security.RequestUser;
+import com.app.technicianservice.security.RequestUserResolver;
 import com.app.technicianservice.service.TechnicianApplicationService;
 import com.app.technicianservice.service.TechnicianService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,11 +12,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -33,9 +37,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "logging.level.root=INFO",
     "logging.level.com.app.technicianservice=INFO",
     "spring.application.name=technician-service-test",
-    "server.port=0"
+    "server.port=0",
+    "spring.cloud.config.enabled=false"
 })
 class TechnicianControllerTest {
+
+    @TestConfiguration
+    static class TestConfig implements WebMvcConfigurer {
+        @Override
+        public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+            resolvers.add(new RequestUserResolver());
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;

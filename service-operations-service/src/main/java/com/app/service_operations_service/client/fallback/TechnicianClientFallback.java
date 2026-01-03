@@ -43,9 +43,4 @@ public class TechnicianClientFallback implements TechnicianClient {
         return Collections.emptyMap();
     }
 
-    @Override
-    public List<TechnicianProfileResponse> getSuggestions(String location, List<String> skills) {
-        log.warn("Technician service is unavailable. Cannot fetch suggestions");
-        return Collections.emptyList();
-    }
 }

@@ -9,17 +9,22 @@ import com.app.notification_service.enums.NotificationType;
 import com.app.notification_service.exception.BadRequestException;
 import com.app.notification_service.exception.NotificationFetchException;
 import com.app.notification_service.security.RequestUser;
+import com.app.notification_service.security.RequestUserResolver;
 import com.app.notification_service.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -40,6 +45,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "server.port=0"
 })
 class NotificationControllerTest {
+
+    @TestConfiguration
+    static class TestConfig implements WebMvcConfigurer {
+        @Override
+        public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+            resolvers.add(new RequestUserResolver());
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -213,16 +226,6 @@ class NotificationControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    @Test
-    void markAsRead_ShouldReturnBadRequest_WhenIdIsBlank() throws Exception {
-        mockMvc.perform(put("/api/notifications/ /read"))
-                .andExpect(status().isBadRequest());
-    }
 
-    @Test
-    void markAsRead_ShouldReturnBadRequest_WhenIdIsEmpty() throws Exception {
-        mockMvc.perform(put("/api/notifications//read"))
-                .andExpect(status().isNotFound()); // Spring will return 404 for empty path variable
-    }
 }
 

@@ -37,9 +37,4 @@ public interface TechnicianClient {
     @CircuitBreaker(name = "technician-service", fallbackMethod = "getStatsFallback")
     Map<String, Object> getStats();
 
-    @GetMapping("/suggestions")
-    @CircuitBreaker(name = "technician-service", fallbackMethod = "getSuggestionsFallback")
-    List<TechnicianProfileResponse> getSuggestions(
-            @RequestParam("location") String location,
-            @RequestParam("skills") List<String> skills);
 }

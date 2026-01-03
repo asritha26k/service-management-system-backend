@@ -211,9 +211,4 @@ public class ServiceRequestController {
         return serviceRequestService.stats();
     }
 
-    @GetMapping("/{id}/suggested-technicians")
-    public List<TechnicianProfileResponse> getSuggestedTechnicians(@PathVariable("id") String id) {
-        log.info("Fetching suggested technicians for request: {}", id);
-        return serviceRequestService.getSuggestedTechnicians(id);
-    }
 }

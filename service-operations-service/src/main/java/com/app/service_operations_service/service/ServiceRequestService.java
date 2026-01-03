@@ -773,20 +773,6 @@ public class ServiceRequestService {
         return toResponse(saved);
     }
 
-    public List<TechnicianProfileResponse> getSuggestedTechnicians(String requestId) {
-        ServiceRequest request = fetch(requestId);
-
-        // Fetch service name to use as skill
-        String serviceName = itemRepository.findById(request.getServiceId())
-                .map(item -> item.getName())
-                .orElse(null);
-
-        List<String> skills = serviceName != null ? List.of(serviceName) : List.of();
-        String location = request.getAddress(); // Simple location matching for now
-
-        return technicianClient.getSuggestions(location, skills);
-    }
-
     private String generateRequestNumber() {
         return "REQ-" + UUID.randomUUID()
                 .toString()

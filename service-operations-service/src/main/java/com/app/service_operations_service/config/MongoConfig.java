@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
@@ -18,10 +19,13 @@ import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.NonNull;
 
 // MongoDB configuration to handle Java 8 date/time types properly.
 // Fixes the module access issue with Instant serialization.
+@ConditionalOnClass(name = "com.mongodb.client.MongoClient")
+@ConditionalOnProperty(name = "app.mongo.enabled", havingValue = "true", matchIfMissing = true)
 @Configuration
 public class MongoConfig {
 

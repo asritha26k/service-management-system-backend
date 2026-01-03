@@ -515,16 +515,9 @@ public class ServiceRequestService {
             log.info("=== NOTIFYING CUSTOMER ===");
             log.info("customerId: {}", customerId);
 
-            // Get the customer profile which has the user ID mapping
-            CustomerSummary customer = identityClient.getCustomer(customerId);
-            if (customer == null) {
-                log.warn("Customer not found for notification: {}", customerId);
-                return;
-            }
-
             // IMPORTANT: Use the customerId as userId since when JWT is created,
             // the user.userId() will be the same as customerId
-            // This ensures notification query and save use the same userId
+            // This avoids an extra identity lookup and keeps notification queries aligned.
             String userId = customerId;
             log.info("Sending notification with userId: {} for customer: {}", userId, customerId);
 

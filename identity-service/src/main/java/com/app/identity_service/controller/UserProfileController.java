@@ -51,7 +51,7 @@ public class UserProfileController {
 
 	//get user profile endpoint
 	@GetMapping("/{userId}")
-	public ResponseEntity<UserProfileResponse> getProfileByUserId(@PathVariable String userId) {
+	public ResponseEntity<UserProfileResponse> getProfileByUserId(@PathVariable("userId") String userId) {
 		if (userId == null || userId.isBlank()) {
 			log.warn("Get profile attempted with invalid user ID");
 			throw new IllegalArgumentException("User ID is required");
@@ -80,7 +80,7 @@ public class UserProfileController {
 
 	@PutMapping("/{userId}")
 	public ResponseEntity<Void> updateProfile(
-			@PathVariable String userId,
+			@PathVariable("userId") String userId,
 			@Valid @RequestBody UpdateUserProfileRequest request) {
 		if (userId == null || userId.isBlank()) {
 			log.warn("Update profile attempted with invalid user ID");

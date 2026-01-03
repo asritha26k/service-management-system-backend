@@ -37,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
     "logging.level.root=INFO",
     "logging.level.com.app.identity_service=INFO",
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.config.import-check.enabled=false",
     "spring.application.name=identity-service-test",
     "server.port=0",
     "LOG_LEVEL_ROOT=INFO",

@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "identity-service", path = "/api", configuration = FeignConfig.class, fallback = IdentityClientFallback.class)
 public interface IdentityClient {
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/users/{userId}")
     @CircuitBreaker(name = "identity-service", fallbackMethod = "getCustomerFallback")
-    CustomerSummary getCustomer(@PathVariable("id") String id);
+    CustomerSummary getCustomer(@PathVariable("userId") String id);
 
 
 }

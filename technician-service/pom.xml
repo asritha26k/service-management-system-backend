@@ -103,9 +103,12 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>**/model/**</exclude>
+                                <exclude>**/entity/**</exclude>
                                 <exclude>**/dto/**</exclude>
-                                <exclude>**/request/**</exclude>
+                                <exclude>**/security/**</exclude>
+                                <exclude>**/util/**</exclude>
+                                <exclude>**/feign/**</exclude>
+                                <exclude>**/config/**</exclude>
                             </excludes>
                         </configuration>
 

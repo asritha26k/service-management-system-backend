@@ -23,7 +23,7 @@ public class UserController {
 	  //Get all users by role endpoint
 	 
 	@GetMapping("/role/{role}")
-	public ResponseEntity<List<UserAuthResponse>> getUsersByRole(@PathVariable String role) {
+	public ResponseEntity<List<UserAuthResponse>> getUsersByRole(@PathVariable("role") String role) {
 		List<UserAuthResponse> users = userService.getUsersByRole(role);
 		return ResponseEntity.ok(users);
 	}
@@ -32,7 +32,7 @@ public class UserController {
 	 // Search users by email endpoint
 	 
 	@GetMapping("/search")
-	public ResponseEntity<List<UserAuthResponse>> searchUsers(@RequestParam String email) {
+	public ResponseEntity<List<UserAuthResponse>> searchUsers(@RequestParam("email") String email) {
 		List<UserAuthResponse> users = userService.searchUsersByEmail(email);
 		return ResponseEntity.ok(users);
 	}
@@ -41,7 +41,7 @@ public class UserController {
 	 // Get user by ID endpoint
 	 
 	@GetMapping("/{userId}")
-	public ResponseEntity<UserAuthResponse> getUserById(@PathVariable String userId) {
+	public ResponseEntity<UserAuthResponse> getUserById(@PathVariable("userId") String userId) {
 		UserAuthResponse user = userService.getUserById(userId);
 		return ResponseEntity.ok(user);
 	}

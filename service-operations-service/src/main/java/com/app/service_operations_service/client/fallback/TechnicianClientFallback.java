@@ -2,6 +2,7 @@ package com.app.service_operations_service.client.fallback;
 
 import com.app.service_operations_service.client.TechnicianClient;
 import com.app.service_operations_service.client.dto.TechnicianProfileResponse;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -40,5 +41,11 @@ public class TechnicianClientFallback implements TechnicianClient {
     public Map<String, Object> getStats() {
         log.warn("Technician service is unavailable. Cannot fetch technician stats");
         return Collections.emptyMap();
+    }
+
+    @Override
+    public List<TechnicianProfileResponse> getSuggestions(String location, List<String> skills) {
+        log.warn("Technician service is unavailable. Cannot fetch suggestions");
+        return Collections.emptyList();
     }
 }

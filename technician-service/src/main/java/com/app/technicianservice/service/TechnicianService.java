@@ -2,6 +2,7 @@ package com.app.technicianservice.service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,10 +33,42 @@ public class TechnicianService {
     private final TechnicianRatingRepository ratingRepository;
     private final IdentityServiceClient identityServiceClient;
 
-    public TechnicianService(TechnicianProfileRepository repository, TechnicianRatingRepository ratingRepository, IdentityServiceClient identityServiceClient) {
+    public TechnicianService(TechnicianProfileRepository repository, TechnicianRatingRepository ratingRepository,
+            IdentityServiceClient identityServiceClient) {
         this.repository = repository;
         this.ratingRepository = ratingRepository;
         this.identityServiceClient = identityServiceClient;
+    }
+
+    public List<TechnicianProfileResponse> findSuggestions(String location, List<String> skills) {
+        List<TechnicianProfile> availableTechs = repository.findByIsAvailableTrue();
+
+        return availableTechs.stream()
+                .filter(tech -> {
+                    boolean locationMatch = location == null || location.isBlank() ||
+                            (tech.getLocation() != null
+                                    && tech.getLocation().toLowerCase().contains(location.toLowerCase()));
+
+                    boolean skillMatch = skills == null || skills.isEmpty() ||
+                            tech.getSkills().stream()
+                                    .anyMatch(s -> skills.stream().anyMatch(reqS -> reqS.equalsIgnoreCase(s)));
+
+                    return locationMatch && skillMatch;
+                })
+                .sorted((t1, t2) -> {
+                    // Sort by workload (asc), then rating (desc)
+                    int workloadCompare = Integer.compare(
+                            t1.getCurrentWorkload() != null ? t1.getCurrentWorkload() : 0,
+                            t2.getCurrentWorkload() != null ? t2.getCurrentWorkload() : 0);
+                    if (workloadCompare != 0)
+                        return workloadCompare;
+
+                    Double r1 = t1.getRating() != null ? t1.getRating() : 0.0;
+                    Double r2 = t2.getRating() != null ? t2.getRating() : 0.0;
+                    return r2.compareTo(r1);
+                })
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public TechnicianProfileResponse createProfile(RequestUser user, CreateProfileRequest request) {
@@ -44,26 +77,27 @@ public class TechnicianService {
         var existingProfile = repository.findByUserId(user.userId());
         if (existingProfile.isPresent()) {
             // Profile already exists - return it instead of throwing error
-            // This handles the case where profile was auto-created during application approval
+            // This handles the case where profile was auto-created during application
+            // approval
             return toResponse(existingProfile.get());
         }
 
         // Use email and name from the request or fetch from identity service if needed
         String email = request.getEmail();
         String name = request.getName();
-        
+
         // If email is not provided in request, try to fetch from identity service
         if (email == null || email.isBlank()) {
             var response = identityServiceClient.getCurrentUser();
             if (response == null) {
                 throw new BadRequestException("Unable to retrieve user information from identity service");
             }
-            
+
             var userMeResponse = response.getBody();
             if (userMeResponse == null) {
                 throw new BadRequestException("Invalid response from identity service");
             }
-            
+
             email = userMeResponse.getEmail();
             if (email == null || email.isBlank()) {
                 throw new BadRequestException("Email not found in identity service response");
@@ -87,15 +121,13 @@ public class TechnicianService {
     public TechnicianProfileResponse updateAvailability(
             RequestUser user,
             String id,
-            AvailabilityUpdateRequest request
-    ) {
+            AvailabilityUpdateRequest request) {
         TechnicianProfile profile = fetch(id);
 
         UserContext.requireOwnershipOrAdmin(
                 user.userId(),
                 user.role(),
-                profile.getUserId()
-        );
+                profile.getUserId());
 
         profile.applyAvailabilityUpdate(request);
         return toResponse(repository.save(profile));
@@ -103,18 +135,18 @@ public class TechnicianService {
 
     public TechnicianProfileResponse updateMyAvailability(
             RequestUser user,
-            AvailabilityUpdateRequest request
-    ) {
+            AvailabilityUpdateRequest request) {
         UserContext.requireAuthenticated(user.userId());
-        
+
         TechnicianProfile profile = repository.findByUserId(user.userId())
                 .orElseThrow(() -> new NotFoundException("Technician profile not found"));
-        
+
         // Business Rule: Cannot mark available if already at max workload
         if (Boolean.TRUE.equals(request.getAvailable()) && profile.getCurrentWorkload() >= profile.getMaxWorkload()) {
-            throw new BadRequestException("Cannot mark available while workload is at maximum. Complete some work first.");
+            throw new BadRequestException(
+                    "Cannot mark available while workload is at maximum. Complete some work first.");
         }
-        
+
         profile.applyAvailabilityUpdate(request);
         return toResponse(repository.save(profile));
     }
@@ -126,8 +158,7 @@ public class TechnicianService {
     public TechnicianProfileResponse getByUserId(String userId) {
         return toResponse(
                 repository.findByUserId(userId)
-                        .orElseThrow(() -> new NotFoundException("Not found"))
-        );
+                        .orElseThrow(() -> new NotFoundException("Not found")));
     }
 
     public List<TechnicianSummaryResponse> getAvailable() {
@@ -145,10 +176,10 @@ public class TechnicianService {
 
     public WorkloadResponse getMyWorkload(RequestUser user) {
         UserContext.requireAuthenticated(user.userId());
-        
+
         TechnicianProfile p = repository.findByUserId(user.userId())
                 .orElseThrow(() -> new NotFoundException("Technician profile not found"));
-        
+
         return new WorkloadResponse(p.getId(), p.getAvailable(), p.getCurrentWorkload(), p.getMaxWorkload());
     }
 
@@ -157,7 +188,8 @@ public class TechnicianService {
 
         StatsResponse r = new StatsResponse();
         r.setTotalTechnicians(all.size());
-        // Available technicians: marked available AND have capacity (currentWorkload < maxWorkload)
+        // Available technicians: marked available AND have capacity (currentWorkload <
+        // maxWorkload)
         r.setAvailableTechnicians(all.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getAvailable()) && p.getCurrentWorkload() < p.getMaxWorkload())
                 .count());
@@ -165,9 +197,8 @@ public class TechnicianService {
                 all.stream().map(TechnicianProfile::getRating)
                         .filter(Objects::nonNull)
                         .mapToDouble(Double::doubleValue)
-                        .average().orElse(0)
-        );
-        
+                        .average().orElse(0));
+
         // Calculate average workload ratio: (currentWorkload / maxWorkload) * 100
         double averageWorkloadRatio = all.stream()
                 .filter(p -> p.getMaxWorkload() != null && p.getMaxWorkload() > 0)
@@ -175,7 +206,7 @@ public class TechnicianService {
                 .average()
                 .orElse(0.0);
         r.setAverageWorkloadRatio(averageWorkloadRatio);
-        
+
         return r;
     }
 
@@ -198,7 +229,7 @@ public class TechnicianService {
         if (customerId.equals(technicianId)) {
             throw new BadRequestException("Technicians cannot rate themselves");
         }
-        
+
         // Fetch technician profile - try by profile ID first, then by user ID
         TechnicianProfile technician = repository.findById(technicianId)
                 .orElseGet(() -> repository.findByUserId(technicianId)
@@ -207,7 +238,7 @@ public class TechnicianService {
         // Check if customer already rated this technician
         var existingRating = ratingRepository.findByTechnicianIdAndCustomerId(technician.getId(), customerId);
         TechnicianRating rating;
-        
+
         if (existingRating.isPresent()) {
             // Update existing rating
             rating = existingRating.get();
@@ -217,12 +248,12 @@ public class TechnicianService {
             // Create new rating
             rating = new TechnicianRating(technician.getId(), customerId, request.getRating(), request.getComment());
         }
-        
+
         rating = ratingRepository.save(rating);
-        
+
         // Update technician's average rating
         updateTechnicianAverageRating(technician.getId());
-        
+
         return new TechnicianRatingResponse(rating);
     }
 
@@ -234,7 +265,7 @@ public class TechnicianService {
         TechnicianProfile technician = repository.findById(technicianId)
                 .orElseGet(() -> repository.findByUserId(technicianId)
                         .orElseThrow(() -> new NotFoundException("Technician not found with ID: " + technicianId)));
-        
+
         return ratingRepository.findByTechnicianId(technician.getId())
                 .stream()
                 .map(TechnicianRatingResponse::new)
@@ -250,12 +281,12 @@ public class TechnicianService {
         if (customerId.equals(technicianId)) {
             throw new BadRequestException("Technicians cannot view their own ratings");
         }
-        
+
         // Fetch technician profile - try by profile ID first, then by user ID
         TechnicianProfile technician = repository.findById(technicianId)
                 .orElseGet(() -> repository.findByUserId(technicianId)
                         .orElseThrow(() -> new NotFoundException("Technician not found with ID: " + technicianId)));
-        
+
         return ratingRepository.findByTechnicianIdAndCustomerId(technician.getId(), customerId)
                 .map(TechnicianRatingResponse::new)
                 .orElseThrow(() -> new NotFoundException("Rating not found"));
@@ -264,16 +295,16 @@ public class TechnicianService {
     // Update average rating for a technician based on all submitted ratings
     private void updateTechnicianAverageRating(String technicianId) {
         List<TechnicianRating> ratings = ratingRepository.findByTechnicianId(technicianId);
-        
+
         if (ratings.isEmpty()) {
             return;
         }
-        
+
         Double averageRating = ratings.stream()
                 .mapToDouble(r -> r.getRating())
                 .average()
                 .orElse(0.0);
-        
+
         TechnicianProfile technician = fetch(technicianId);
         technician.setRating(averageRating);
         repository.save(technician);
@@ -281,23 +312,23 @@ public class TechnicianService {
 
     public WorkloadResponse updateWorkload(String id, Integer currentWorkload) {
         TechnicianProfile p = fetch(id);
-        
+
         // Business Rule: Workload cannot be negative
         if (currentWorkload < 0) {
             throw new BadRequestException("Workload cannot be negative. Current workload: " + currentWorkload);
         }
-        
+
         // Business Rule: Workload cannot exceed max workload
         if (currentWorkload > p.getMaxWorkload()) {
             throw new BadRequestException(
-                "Current workload cannot exceed maximum. Current: " + currentWorkload + 
-                ", Maximum: " + p.getMaxWorkload()
-            );
+                    "Current workload cannot exceed maximum. Current: " + currentWorkload +
+                            ", Maximum: " + p.getMaxWorkload());
         }
-        
+
         p.setCurrentWorkload(currentWorkload);
         TechnicianProfile updated = repository.save(p);
-        return new WorkloadResponse(updated.getId(), updated.getAvailable(), updated.getCurrentWorkload(), updated.getMaxWorkload());
+        return new WorkloadResponse(updated.getId(), updated.getAvailable(), updated.getCurrentWorkload(),
+                updated.getMaxWorkload());
     }
 
     private TechnicianProfile fetch(String id) {
@@ -319,7 +350,6 @@ public class TechnicianService {
                 p.getRating(),
                 p.getAvailable(),
                 p.getCurrentWorkload(),
-                p.getMaxWorkload()
-        );
+                p.getMaxWorkload());
     }
 }

@@ -22,6 +22,7 @@ import com.app.service_operations_service.dto.requests.ServiceRequestStatsRespon
 import com.app.service_operations_service.dto.requests.ServiceRequestWithCustomerResponse;
 import com.app.service_operations_service.dto.requests.ServiceRequestWithTechnicianResponse;
 import com.app.service_operations_service.dto.requests.UpdateStatusRequest;
+import com.app.service_operations_service.client.dto.TechnicianProfileResponse;
 import com.app.service_operations_service.dto.requests.RescheduleServiceRequest;
 import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.exception.UnauthorizedException;
@@ -34,9 +35,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/service-requests")
 public class ServiceRequestController {
-    private static final String UNAUTHORIZED_USER_ID_MISSING =
-            "Unauthorized: User ID not found in JWT token";
-    
+    private static final String UNAUTHORIZED_USER_ID_MISSING = "Unauthorized: User ID not found in JWT token";
+
     private static final Logger log = LoggerFactory.getLogger(ServiceRequestController.class);
 
     private final ServiceRequestService serviceRequestService;
@@ -209,5 +209,11 @@ public class ServiceRequestController {
     public ServiceRequestStatsResponse stats() {
         log.debug("Fetching service request statistics");
         return serviceRequestService.stats();
+    }
+
+    @GetMapping("/{id}/suggested-technicians")
+    public List<TechnicianProfileResponse> getSuggestedTechnicians(@PathVariable("id") String id) {
+        log.info("Fetching suggested technicians for request: {}", id);
+        return serviceRequestService.getSuggestedTechnicians(id);
     }
 }

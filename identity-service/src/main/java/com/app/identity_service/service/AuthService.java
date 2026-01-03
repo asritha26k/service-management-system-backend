@@ -27,6 +27,7 @@ import com.app.identity_service.entity.UserAuth;
 import com.app.identity_service.entity.UserRole;
 import com.app.identity_service.exception.DuplicateResourceException;
 import com.app.identity_service.exception.InvalidCredentialsException;
+import com.app.identity_service.exception.InvalidTokenException;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.feign.NotificationServiceClient;
 import com.app.identity_service.entity.dto.LoginCredentialsRequest;
@@ -42,11 +43,9 @@ public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
-    private static final String EMAIL_ALREADY_REGISTERED_MSG =
-            "Email already registered: ";
+    private static final String EMAIL_ALREADY_REGISTERED_MSG = "Email already registered: ";
 
-    private static final String FAILED_CREDENTIALS_EMAIL_MSG =
-            "Failed to send credentials email: ";
+    private static final String FAILED_CREDENTIALS_EMAIL_MSG = "Failed to send credentials email: ";
 
     @Autowired
     private UserAuthRepository userAuthRepository;
@@ -66,15 +65,13 @@ public class AuthService {
     public UserAuthResponse registerCustomer(RegisterCustomerRequest request) {
         if (userAuthRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException(
-                    EMAIL_ALREADY_REGISTERED_MSG + request.getEmail()
-            );
+                    EMAIL_ALREADY_REGISTERED_MSG + request.getEmail());
         }
 
         UserAuth user = new UserAuth(
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword()),
-                UserRole.CUSTOMER
-        );
+                UserRole.CUSTOMER);
         user.setIsEmailVerified(true);
         user.setForcePasswordChange(false);
 
@@ -90,8 +87,7 @@ public class AuthService {
 
         userProfileService.createProfile(
                 savedUser.getId(),
-                profileRequest
-        );
+                profileRequest);
 
         return mapToUserAuthResponse(savedUser);
     }
@@ -103,8 +99,7 @@ public class AuthService {
 
         if (userAuthRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException(
-                    EMAIL_ALREADY_REGISTERED_MSG + request.getEmail()
-            );
+                    EMAIL_ALREADY_REGISTERED_MSG + request.getEmail());
         }
 
         String temporaryPassword = generateTemporaryPassword();
@@ -112,8 +107,7 @@ public class AuthService {
         UserAuth user = new UserAuth(
                 request.getEmail(),
                 passwordEncoder.encode(temporaryPassword),
-                role
-        );
+                role);
         user.setCreatedBy(adminId);
         user.setForcePasswordChange(true);
         user.setIsEmailVerified(true);
@@ -128,8 +122,7 @@ public class AuthService {
         userProfileService.createProfile(
                 savedUser.getId(),
                 profileRequest,
-                request.getDepartment()
-        );
+                request.getDepartment());
 
         sendCredentialsEmailSafely(request.getEmail(), temporaryPassword, role);
 
@@ -154,8 +147,7 @@ public class AuthService {
 
         if (userAuthRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException(
-                    EMAIL_ALREADY_REGISTERED_MSG + request.getEmail()
-            );
+                    EMAIL_ALREADY_REGISTERED_MSG + request.getEmail());
         }
 
         String temporaryPassword = generateTemporaryPassword();
@@ -163,8 +155,7 @@ public class AuthService {
         UserAuth user = new UserAuth(
                 request.getEmail(),
                 passwordEncoder.encode(temporaryPassword),
-                role
-        );
+                role);
         user.setCreatedBy(createdBy);
         user.setForcePasswordChange(true);
         user.setIsEmailVerified(true);
@@ -178,8 +169,7 @@ public class AuthService {
 
         userProfileService.createProfile(
                 savedUser.getId(),
-                profileRequest
-        );
+                profileRequest);
 
         sendCredentialsEmailSafely(request.getEmail(), temporaryPassword, role);
 
@@ -209,18 +199,16 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        String accessToken =
-                jwtUtility.generateAccessToken(user.getId(), user.getEmail(), user.getRole().toString());
-        String refreshToken =
-                generateAndSaveRefreshToken(user.getId(), user.getEmail());
+        String accessToken = jwtUtility.generateAccessToken(user.getId(), user.getEmail(), user.getRole().toString(),
+                user.getForcePasswordChange());
+        String refreshToken = generateAndSaveRefreshToken(user.getId(), user.getEmail());
 
         LoginResponse response = new LoginResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getRole().toString(),
                 accessToken,
-                refreshToken
-        );
+                refreshToken);
         response.setForcePasswordChange(user.getForcePasswordChange());
 
         return response;
@@ -232,8 +220,7 @@ public class AuthService {
             String email, String password, UserRole role) {
         try {
             notificationServiceClient.sendCredentialsEmail(
-                    new LoginCredentialsRequest(email, password, role.getDisplayName())
-            );
+                    new LoginCredentialsRequest(email, password, role.name()));
         } catch (Exception e) {
             logger.error(FAILED_CREDENTIALS_EMAIL_MSG + e.getMessage(), e);
         }
@@ -241,25 +228,29 @@ public class AuthService {
 
     private String generateAndSaveRefreshToken(String userId, String email) {
         String token = jwtUtility.generateRefreshToken(userId, email);
-        RefreshToken refreshToken =
-                new RefreshToken(token, userId, LocalDateTime.now().plusDays(7));
+        RefreshToken refreshToken = new RefreshToken(token, userId, LocalDateTime.now().plusDays(7));
         refreshTokenRepository.save(refreshToken);
         return token;
     }
 
-    // ================= token refresh, logout, and password management =================
+    // ================= token refresh, logout, and password management
+    // =================
 
     public TokenResponse refreshAccessToken(RefreshTokenRequest request) {
-        String refreshToken = request.getRefreshToken();
-        RefreshToken refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid or expired refresh token"));
+        refreshTokenRepository.findByToken(request.getRefreshToken())
+                .filter(rt -> rt.getExpiryDate().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new InvalidTokenException("Invalid or expired refresh token"));
 
-        UserAuth user = userAuthRepository.findById(refreshTokenEntity.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshTokenEntity.getUserId()));
+        io.jsonwebtoken.Claims claims = jwtUtility.extractAllClaims(request.getRefreshToken());
+        String userId = claims.get("userId", String.class);
+        String email = claims.getSubject();
 
-        String newAccessToken = jwtUtility.generateAccessToken(user.getId(), user.getEmail(), user.getRole().toString());
-        Long expiresIn = 3600000L; // 1 hour in milliseconds
-        return new TokenResponse(newAccessToken, refreshToken, expiresIn);
+        UserAuth user = userAuthRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        String newAccessToken = jwtUtility.generateAccessToken(userId, email, user.getRole().toString(),
+                user.getForcePasswordChange());
+        return new TokenResponse(newAccessToken, request.getRefreshToken(), null);
     }
 
     public void logout(String userId) {
@@ -281,14 +272,14 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setForcePasswordChange(false);
         userAuthRepository.save(user);
-        
+
         return new MessageResponse("Password changed successfully");
     }
 
     public UserMeResponse getCurrentUser(String userId) {
         UserAuth user = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        
+
         // Note: UserProfileService handles profile fetching
         return UserMeResponse.builder()
                 .id(user.getId())
@@ -308,7 +299,6 @@ public class AuthService {
                 user.getRole().toString(),
                 user.getIsActive(),
                 user.getIsEmailVerified(),
-                user.getForcePasswordChange()
-        );
+                user.getForcePasswordChange());
     }
 }

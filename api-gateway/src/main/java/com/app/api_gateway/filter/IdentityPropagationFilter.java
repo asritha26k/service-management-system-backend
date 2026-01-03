@@ -10,12 +10,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.app.api_gateway.security.JwtUserPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import reactor.core.publisher.Mono;
 
 @Component
 public class IdentityPropagationFilter implements GlobalFilter, Ordered {
-
 
     private static final String HEADER_USER_ID = "X-User-Id";
     private static final String HEADER_USER_ROLE = "X-User-Role";
@@ -34,8 +35,7 @@ public class IdentityPropagationFilter implements GlobalFilter, Ordered {
     private Mono<Void> processAuthenticated(
             ServerWebExchange exchange,
             GatewayFilterChain chain,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return processUnauthenticated(exchange, chain);
@@ -48,6 +48,19 @@ public class IdentityPropagationFilter implements GlobalFilter, Ordered {
         }
 
         JwtUserPrincipal user = (JwtUserPrincipal) principal;
+
+        String path = exchange.getRequest().getURI().getPath();
+        if (user.isNeedsPasswordChange()) {
+            // Only allow change-password and logout related paths (from identity service)
+            boolean isAllowed = path.contains("/api/auth/change-password") || path.contains("/api/auth/logout");
+
+            if (!isAllowed) {
+                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+                return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                        .bufferFactory().wrap("{\"message\": \"Password change required\"}".getBytes())));
+            }
+        }
 
         String userId = user.getUserId();
         String role = user.getRole();
@@ -73,8 +86,7 @@ public class IdentityPropagationFilter implements GlobalFilter, Ordered {
 
     private Mono<Void> processUnauthenticated(
             ServerWebExchange exchange,
-            GatewayFilterChain chain
-    ) {
+            GatewayFilterChain chain) {
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .headers(headers -> {

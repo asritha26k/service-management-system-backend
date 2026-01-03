@@ -18,11 +18,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final Logger logger =
-            LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Autowired
     private JwtUtility jwtUtility;
@@ -30,8 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/api/auth/login",
             "/api/auth/register",
-            "/api/auth/refresh"
-    );
+            "/api/auth/refresh");
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -44,13 +41,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || isSwagger(path);
     }
 
-
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getServletPath();
         logger.debug("[JWT Filter] Processing request: {} {}", request.getMethod(), path);
@@ -62,11 +57,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.warn("[JWT Filter] No JWT token found for path: {}", path);
             } else if (!jwtUtility.validateToken(jwt)) {
                 logger.warn("[JWT Filter] Invalid JWT token for path: {}", path);
-            } else if (isAlreadyAuthenticated()) {
-                logger.debug("[JWT Filter] Authentication already present, skipping JWT processing");
             } else {
-                logger.debug("[JWT Filter] Processing valid JWT token for path: {}", path);
-                authenticate(jwt);
+                boolean needsPasswordChange = jwtUtility.extractNeedsPasswordChange(jwt);
+                boolean isAllowedPath = path.equals("/api/auth/change-password") || path.equals("/api/auth/logout");
+
+                if (needsPasswordChange && !isAllowedPath) {
+                    logger.warn("[JWT Filter] Access denied: User must change password. Path={}", path);
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"message\": \"Password change required to access this resource\"}");
+                    return;
+                }
+
+                if (isAlreadyAuthenticated()) {
+                    logger.debug("[JWT Filter] Authentication already present, skipping JWT processing");
+                } else {
+                    logger.debug("[JWT Filter] Processing valid JWT token for path: {}", path);
+                    authenticate(jwt);
+                }
             }
 
         } catch (Exception e) {
@@ -75,7 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
 
     // ================= helper methods =================
 
@@ -109,23 +116,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String userId = jwtUtility.extractUserId(jwt);
 
         if (role == null) {
-            logger.warn("[JWT Filter] CRITICAL: Role claim is null for userId={}, email={}. This will result in ROLE_null authority!", userId, email);
+            logger.warn(
+                    "[JWT Filter] CRITICAL: Role claim is null for userId={}, email={}. This will result in ROLE_null authority!",
+                    userId, email);
         }
 
-        SimpleGrantedAuthority authority =
-                new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "UNKNOWN"));
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "UNKNOWN"));
 
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        null,
-                        Collections.singletonList(authority)
-                );
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                email,
+                null,
+                Collections.singletonList(authority));
 
         authentication.setDetails(userId);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        logger.info("[JWT Filter] Authenticated userId={}, email={}, role={}, authority={}", userId, email, role, authority.getAuthority());
+        logger.info("[JWT Filter] Authenticated userId={}, email={}, role={}, authority={}", userId, email, role,
+                authority.getAuthority());
     }
 
     private void logMissingOrInvalid(String jwt, String path) {

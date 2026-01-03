@@ -47,6 +47,19 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
 	}
 
+	@ExceptionHandler(InvalidTokenException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidTokenException(
+			InvalidTokenException ex, WebRequest request) {
+		log.warn("Invalid or expired token: {}", ex.getMessage());
+		ErrorResponse error = new ErrorResponse(
+			HttpStatus.UNAUTHORIZED.value(),
+			"Unauthorized",
+			ex.getMessage(),
+			request.getDescription(false).replace("uri=", "")
+		);
+		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+	}
+
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
 			DuplicateResourceException ex, WebRequest request) {

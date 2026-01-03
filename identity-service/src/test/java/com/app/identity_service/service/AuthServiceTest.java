@@ -6,6 +6,7 @@ import com.app.identity_service.entity.UserAuth;
 import com.app.identity_service.entity.UserRole;
 import com.app.identity_service.exception.DuplicateResourceException;
 import com.app.identity_service.exception.InvalidCredentialsException;
+import com.app.identity_service.exception.InvalidTokenException;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.feign.NotificationServiceClient;
 import com.app.identity_service.repository.RefreshTokenRepository;
@@ -158,7 +159,7 @@ class AuthServiceTest {
     void login_ShouldReturnLoginResponse() {
         when(userAuthRepository.findByEmail("customer@example.com")).thenReturn(Optional.of(userAuth));
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
-        when(jwtUtility.generateAccessToken(anyString(), anyString(), anyString())).thenReturn("access-token");
+        when(jwtUtility.generateAccessToken(anyString(), anyString(), anyString(), anyBoolean())).thenReturn("access-token");
         when(jwtUtility.generateRefreshToken(anyString(), anyString())).thenReturn("refresh-token");
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(new RefreshToken());
 
@@ -210,8 +211,10 @@ class AuthServiceTest {
         refreshToken.setExpiryDate(LocalDateTime.now().plusDays(7));
 
         when(refreshTokenRepository.findByToken("refresh-token")).thenReturn(Optional.of(refreshToken));
+        when(jwtUtility.extractAllClaims("refresh-token")).thenReturn(
+            io.jsonwebtoken.Jwts.claims().subject("user@example.com").add("userId", "user-1").build());
         when(userAuthRepository.findById("user-1")).thenReturn(Optional.of(userAuth));
-        when(jwtUtility.generateAccessToken(anyString(), anyString(), anyString())).thenReturn("new-access-token");
+        when(jwtUtility.generateAccessToken(anyString(), anyString(), anyString(), anyBoolean())).thenReturn("new-access-token");
 
         TokenResponse response = authService.refreshAccessToken(request);
 
@@ -222,13 +225,13 @@ class AuthServiceTest {
     }
 
     @Test
-    void refreshAccessToken_ShouldThrowInvalidCredentialsException_WhenTokenNotFound() {
+    void refreshAccessToken_ShouldThrowInvalidTokenException_WhenTokenNotFound() {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken("invalid-token");
 
         when(refreshTokenRepository.findByToken("invalid-token")).thenReturn(Optional.empty());
 
-        assertThrows(InvalidCredentialsException.class, () -> 
+        assertThrows(InvalidTokenException.class, () -> 
             authService.refreshAccessToken(request));
     }
 

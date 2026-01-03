@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
 
-
     private final JwtUtility jwtUtility;
 
     public JwtAuthenticationManager(JwtUtility jwtUtility) {
@@ -37,16 +36,14 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
         String userId = jwtUtility.extractUserId(token);
         String role = jwtUtility.extractRole(token);
         String email = jwtUtility.extractEmail(token);
+        boolean needsPasswordChange = jwtUtility.extractNeedsPasswordChange(token);
 
-        JwtUserPrincipal principal =
-                new JwtUserPrincipal(userId, role, email);
+        JwtUserPrincipal principal = new JwtUserPrincipal(userId, role, email, needsPasswordChange);
 
-        UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(
-                        principal,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + role)));
 
         return Mono.just(auth);
     }

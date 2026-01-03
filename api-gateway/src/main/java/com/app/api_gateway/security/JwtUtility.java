@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 // Handles token validation and claims extraction
 @Component
 public class JwtUtility {
+    private static final String CLAIM_NEEDS_PW_CHANGE = "needsPasswordChange";
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -55,5 +56,10 @@ public class JwtUtility {
     // Extract role
     public String extractRole(String token) {
         return extractAllClaims(token).get("role", String.class);
+    }
+
+    public boolean extractNeedsPasswordChange(String token) {
+        Boolean needsChange = extractAllClaims(token).get(CLAIM_NEEDS_PW_CHANGE, Boolean.class);
+        return needsChange != null && needsChange;
     }
 }

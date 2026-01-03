@@ -21,6 +21,7 @@ public class JwtUtility {
     private static final String CLAIM_USER_ID = "userId";
     private static final String CLAIM_ROLE = "role";
     private static final String CLAIM_TYPE = "type";
+    private static final String CLAIM_NEEDS_PW_CHANGE = "needsPasswordChange";
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -35,12 +36,14 @@ public class JwtUtility {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateAccessToken(String userId, String email, String role) {
+    public String generateAccessToken(String userId, String email, String role, boolean needsPasswordChange) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_USER_ID, userId);
         claims.put("email", email);
         claims.put(CLAIM_ROLE, role);
-        logger.debug("[JWT] Generating access token for userId={}, email={}, role={}", userId, email, role);
+        claims.put(CLAIM_NEEDS_PW_CHANGE, needsPasswordChange);
+        logger.debug("[JWT] Generating access token for userId={}, email={}, role={}, needsPasswordChange={}",
+                userId, email, role, needsPasswordChange);
         return createToken(claims, email, accessTokenExpiry);
     }
 
@@ -98,6 +101,11 @@ public class JwtUtility {
         return role;
     }
 
+    public boolean extractNeedsPasswordChange(String token) {
+        Boolean needsChange = extractAllClaims(token).get(CLAIM_NEEDS_PW_CHANGE, Boolean.class);
+        return needsChange != null && needsChange;
+    }
+
     public boolean isTokenExpired(String token) {
         try {
             return extractAllClaims(token).getExpiration().before(new Date());
@@ -108,9 +116,8 @@ public class JwtUtility {
 
     public long getRemainingExpiryTime(String token) {
         try {
-            long remaining =
-                    extractAllClaims(token).getExpiration().getTime()
-                            - System.currentTimeMillis();
+            long remaining = extractAllClaims(token).getExpiration().getTime()
+                    - System.currentTimeMillis();
             return Math.max(remaining, 0);
         } catch (Exception e) {
             return 0;

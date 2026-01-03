@@ -31,7 +31,7 @@ class JwtUtilityTest {
 
     @Test
     void generateAccessToken_ShouldGenerateValidToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -40,7 +40,7 @@ class JwtUtilityTest {
 
     @Test
     void generateAccessToken_ShouldContainCorrectClaims() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         Claims claims = jwtUtility.extractAllClaims(token);
         assertEquals("user-1", claims.get("userId", String.class));
@@ -70,7 +70,7 @@ class JwtUtilityTest {
 
     @Test
     void extractEmail_ShouldExtractEmailFromToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         String email = jwtUtility.extractEmail(token);
 
@@ -79,7 +79,7 @@ class JwtUtilityTest {
 
     @Test
     void extractUserId_ShouldExtractUserIdFromToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         String userId = jwtUtility.extractUserId(token);
 
@@ -88,7 +88,7 @@ class JwtUtilityTest {
 
     @Test
     void extractRole_ShouldExtractRoleFromToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         String role = jwtUtility.extractRole(token);
 
@@ -97,7 +97,7 @@ class JwtUtilityTest {
 
     @Test
     void validateToken_ShouldReturnTrue_ForValidToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         boolean isValid = jwtUtility.validateToken(token);
 
@@ -122,7 +122,7 @@ class JwtUtilityTest {
 
     @Test
     void isTokenExpired_ShouldReturnFalse_ForNonExpiredToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         boolean isExpired = jwtUtility.isTokenExpired(token);
 
@@ -131,7 +131,7 @@ class JwtUtilityTest {
 
     @Test
     void getRemainingExpiryTime_ShouldReturnPositiveValue_ForValidToken() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         long remainingTime = jwtUtility.getRemainingExpiryTime(token);
 
@@ -148,7 +148,7 @@ class JwtUtilityTest {
 
     @Test
     void generateAccessToken_ShouldHaveCorrectExpiry() {
-        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER");
+        String token = jwtUtility.generateAccessToken("user-1", "user@example.com", "CUSTOMER", false);
 
         Claims claims = jwtUtility.extractAllClaims(token);
         Date expiration = claims.getExpiration();

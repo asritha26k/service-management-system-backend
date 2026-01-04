@@ -5,6 +5,7 @@ import com.app.technicianservice.entity.TechnicianProfile;
 import com.app.technicianservice.exception.BadRequestException;
 import com.app.technicianservice.exception.NotFoundException;
 import com.app.technicianservice.feign.IdentityServiceClient;
+import com.app.technicianservice.feign.dto.UserMeResponse;
 import com.app.technicianservice.repository.TechnicianProfileRepository;
 import com.app.technicianservice.security.RequestUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -295,6 +296,434 @@ class TechnicianServiceTest {
 
         assertThrows(BadRequestException.class, () -> 
             technicianService.updateWorkload("profile-1", 10));
+    }
+
+    // Tests for findSuggestions method and its lambda expressions
+    @Test
+    void findSuggestions_ShouldReturnAllAvailableTechnicians_WhenNoFilters() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical", "Plumbing"));
+
+        TechnicianProfile tech2 = new TechnicianProfile();
+        tech2.setId("tech-2");
+        tech2.setName("Tech Two");
+        tech2.setAvailable(true);
+        tech2.setCurrentWorkload(2);
+        tech2.setMaxWorkload(5);
+        tech2.setLocation("Boston");
+        tech2.setSkills(Arrays.asList("HVAC"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions(null, null);
+
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        verify(repository, times(1)).findByIsAvailableTrue();
+    }
+
+    @Test
+    void findSuggestions_ShouldFilterByLocation() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical"));
+
+        TechnicianProfile tech2 = new TechnicianProfile();
+        tech2.setId("tech-2");
+        tech2.setName("Tech Two");
+        tech2.setAvailable(true);
+        tech2.setCurrentWorkload(2);
+        tech2.setMaxWorkload(5);
+        tech2.setLocation("Boston");
+        tech2.setSkills(Arrays.asList("HVAC"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York", null);
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("tech-1", results.get(0).getId());
+    }
+
+    @Test
+    void findSuggestions_ShouldFilterBySkills() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical", "Plumbing"));
+
+        TechnicianProfile tech2 = new TechnicianProfile();
+        tech2.setId("tech-2");
+        tech2.setName("Tech Two");
+        tech2.setAvailable(true);
+        tech2.setCurrentWorkload(2);
+        tech2.setMaxWorkload(5);
+        tech2.setLocation("Boston");
+        tech2.setSkills(Arrays.asList("HVAC"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions(null, Arrays.asList("Electrical"));
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("tech-1", results.get(0).getId());
+    }
+
+    @Test
+    void findSuggestions_ShouldFilterByLocationAndSkills() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical", "Plumbing"));
+
+        TechnicianProfile tech2 = new TechnicianProfile();
+        tech2.setId("tech-2");
+        tech2.setName("Tech Two");
+        tech2.setAvailable(true);
+        tech2.setCurrentWorkload(2);
+        tech2.setMaxWorkload(5);
+        tech2.setLocation("New York");
+        tech2.setSkills(Arrays.asList("HVAC"));
+
+        TechnicianProfile tech3 = new TechnicianProfile();
+        tech3.setId("tech-3");
+        tech3.setName("Tech Three");
+        tech3.setAvailable(true);
+        tech3.setCurrentWorkload(3);
+        tech3.setMaxWorkload(5);
+        tech3.setLocation("Boston");
+        tech3.setSkills(Arrays.asList("Electrical"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2, tech3));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York", Arrays.asList("Electrical"));
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("tech-1", results.get(0).getId());
+    }
+
+    @Test
+    void findSuggestions_ShouldSortByWorkloadAscending() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(4);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical"));
+
+        TechnicianProfile tech2 = new TechnicianProfile();
+        tech2.setId("tech-2");
+        tech2.setName("Tech Two");
+        tech2.setAvailable(true);
+        tech2.setCurrentWorkload(1);
+        tech2.setMaxWorkload(5);
+        tech2.setLocation("New York");
+        tech2.setSkills(Arrays.asList("Electrical"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York", Arrays.asList("Electrical"));
+
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        // Should be sorted by workload ascending (lowest first)
+        assertEquals("tech-2", results.get(0).getId());
+        assertEquals("tech-1", results.get(1).getId());
+    }
+
+    @Test
+    void findSuggestions_ShouldHandleNullWorkload() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(null); // Null workload
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical"));
+
+        TechnicianProfile tech2 = new TechnicianProfile();
+        tech2.setId("tech-2");
+        tech2.setName("Tech Two");
+        tech2.setAvailable(true);
+        tech2.setCurrentWorkload(1);
+        tech2.setMaxWorkload(5);
+        tech2.setLocation("New York");
+        tech2.setSkills(Arrays.asList("Electrical"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York", null);
+
+        assertNotNull(results);
+        assertEquals(2, results.size());
+    }
+
+    @Test
+    void findSuggestions_ShouldHandleBlankLocation() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("Electrical"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("", null);
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    void findSuggestions_ShouldHandleCaseInsensitiveLocationMatch() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("new york");
+        tech1.setSkills(Arrays.asList("Electrical"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("NEW YORK", null);
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    void findSuggestions_ShouldHandleCaseInsensitiveSkillMatch() {
+        TechnicianProfile tech1 = new TechnicianProfile();
+        tech1.setId("tech-1");
+        tech1.setName("Tech One");
+        tech1.setAvailable(true);
+        tech1.setCurrentWorkload(1);
+        tech1.setMaxWorkload(5);
+        tech1.setLocation("New York");
+        tech1.setSkills(Arrays.asList("electrical"));
+
+        when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1));
+
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions(null, Arrays.asList("ELECTRICAL"));
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+    }
+
+    // Additional tests for createProfile with identity service
+    @Test
+    void createProfile_ShouldFetchEmailFromIdentityService_WhenEmailNotInRequest() {
+        CreateProfileRequest requestWithoutEmail = new CreateProfileRequest();
+        requestWithoutEmail.setName("John Doe");
+        requestWithoutEmail.setPhone("1234567890");
+        requestWithoutEmail.setSkills(Arrays.asList("Electrical"));
+        requestWithoutEmail.setLocation("New York");
+        requestWithoutEmail.setMaxWorkload(5);
+        requestWithoutEmail.setEmail(null);
+
+        UserMeResponse userResponse = new UserMeResponse();
+        userResponse.setId("user-1");
+        userResponse.setEmail("tech@example.com");
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
+        when(identityServiceClient.getCurrentUser()).thenReturn(ResponseEntity.ok(userResponse));
+        when(repository.save(any(TechnicianProfile.class))).thenReturn(profile);
+
+        TechnicianProfileResponse response = technicianService.createProfile(testUser, requestWithoutEmail);
+
+        assertNotNull(response);
+        assertEquals("profile-1", response.getId());
+        verify(identityServiceClient, times(1)).getCurrentUser();
+        verify(repository, times(1)).save(any(TechnicianProfile.class));
+    }
+
+    @Test
+    void createProfile_ShouldThrowBadRequest_WhenIdentityServiceReturnsNull() {
+        CreateProfileRequest requestWithoutEmail = new CreateProfileRequest();
+        requestWithoutEmail.setName("John Doe");
+        requestWithoutEmail.setPhone("1234567890");
+        requestWithoutEmail.setSkills(Arrays.asList("Electrical"));
+        requestWithoutEmail.setLocation("New York");
+        requestWithoutEmail.setMaxWorkload(5);
+        requestWithoutEmail.setEmail(null);
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
+        when(identityServiceClient.getCurrentUser()).thenReturn(null);
+
+        assertThrows(BadRequestException.class, () -> 
+            technicianService.createProfile(testUser, requestWithoutEmail));
+    }
+
+    @Test
+    void createProfile_ShouldThrowBadRequest_WhenIdentityServiceResponseBodyIsNull() {
+        CreateProfileRequest requestWithoutEmail = new CreateProfileRequest();
+        requestWithoutEmail.setName("John Doe");
+        requestWithoutEmail.setPhone("1234567890");
+        requestWithoutEmail.setSkills(Arrays.asList("Electrical"));
+        requestWithoutEmail.setLocation("New York");
+        requestWithoutEmail.setMaxWorkload(5);
+        requestWithoutEmail.setEmail(null);
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
+        when(identityServiceClient.getCurrentUser()).thenReturn(ResponseEntity.ok(null));
+
+        assertThrows(BadRequestException.class, () -> 
+            technicianService.createProfile(testUser, requestWithoutEmail));
+    }
+
+    @Test
+    void createProfile_ShouldThrowBadRequest_WhenIdentityServiceEmailIsBlank() {
+        CreateProfileRequest requestWithoutEmail = new CreateProfileRequest();
+        requestWithoutEmail.setName("John Doe");
+        requestWithoutEmail.setPhone("1234567890");
+        requestWithoutEmail.setSkills(Arrays.asList("Electrical"));
+        requestWithoutEmail.setLocation("New York");
+        requestWithoutEmail.setMaxWorkload(5);
+        requestWithoutEmail.setEmail("");
+
+        UserMeResponse userResponse = new UserMeResponse();
+        userResponse.setId("user-1");
+        userResponse.setEmail("");
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
+        when(identityServiceClient.getCurrentUser()).thenReturn(ResponseEntity.ok(userResponse));
+
+        assertThrows(BadRequestException.class, () -> 
+            technicianService.createProfile(testUser, requestWithoutEmail));
+    }
+
+    // Additional tests for getMyWorkload edge cases
+    @Test
+    void getMyWorkload_ShouldThrowNotFoundException_WhenProfileNotFound() {
+        RequestUser newUser = new RequestUser("user-2", "TECHNICIAN");
+        
+        when(repository.findByUserId("user-2")).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> 
+            technicianService.getMyWorkload(newUser));
+    }
+
+    @Test
+    void getMyWorkload_ShouldReturnCorrectWorkloadData() {
+        TechnicianProfile testProfile = new TechnicianProfile();
+        testProfile.setId("profile-1");
+        testProfile.setUserId("user-1");
+        testProfile.setAvailable(true);
+        testProfile.setCurrentWorkload(3);
+        testProfile.setMaxWorkload(8);
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.of(testProfile));
+
+        WorkloadResponse response = technicianService.getMyWorkload(testUser);
+
+        assertNotNull(response);
+        assertEquals("profile-1", response.getTechnicianId());
+        assertEquals(3, response.getCurrentWorkload());
+        assertEquals(8, response.getMaxWorkload());
+        assertEquals(true, response.getAvailable());
+    }
+
+    // Additional tests for updateMyAvailability edge cases
+    @Test
+    void updateMyAvailability_ShouldThrowNotFoundException_WhenProfileNotFound() {
+        RequestUser newUser = new RequestUser("user-2", "TECHNICIAN");
+        AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
+        request.setAvailable(true);
+
+        when(repository.findByUserId("user-2")).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> 
+            technicianService.updateMyAvailability(newUser, request));
+    }
+
+    @Test
+    void updateMyAvailability_ShouldAllowAvailableTrue_WhenBelowMaxWorkload() {
+        AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
+        request.setAvailable(true);
+        
+        TechnicianProfile testProfile = new TechnicianProfile();
+        testProfile.setId("profile-1");
+        testProfile.setUserId("user-1");
+        testProfile.setAvailable(false);
+        testProfile.setCurrentWorkload(2);
+        testProfile.setMaxWorkload(5);
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.of(testProfile));
+        when(repository.save(any(TechnicianProfile.class))).thenReturn(testProfile);
+
+        TechnicianProfileResponse response = technicianService.updateMyAvailability(testUser, request);
+
+        assertNotNull(response);
+        verify(repository, times(1)).save(any(TechnicianProfile.class));
+    }
+
+    @Test
+    void updateMyAvailability_ShouldAllowAvailableFalse_WhenAtMaxWorkload() {
+        AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
+        request.setAvailable(false);
+        
+        TechnicianProfile testProfile = new TechnicianProfile();
+        testProfile.setId("profile-1");
+        testProfile.setUserId("user-1");
+        testProfile.setAvailable(true);
+        testProfile.setCurrentWorkload(5);
+        testProfile.setMaxWorkload(5);
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.of(testProfile));
+        when(repository.save(any(TechnicianProfile.class))).thenReturn(testProfile);
+
+        TechnicianProfileResponse response = technicianService.updateMyAvailability(testUser, request);
+
+        assertNotNull(response);
+        verify(repository, times(1)).save(any(TechnicianProfile.class));
+    }
+
+    @Test
+    void updateMyAvailability_ShouldThrowBadRequest_WhenTryingAvailableTrue_AtMaxWorkloadEdgeCase() {
+        AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
+        request.setAvailable(true);
+        
+        TechnicianProfile testProfile = new TechnicianProfile();
+        testProfile.setId("profile-1");
+        testProfile.setUserId("user-1");
+        testProfile.setAvailable(false);
+        testProfile.setCurrentWorkload(5);
+        testProfile.setMaxWorkload(5);
+
+        when(repository.findByUserId("user-1")).thenReturn(Optional.of(testProfile));
+
+        assertThrows(BadRequestException.class, () -> 
+            technicianService.updateMyAvailability(testUser, request));
     }
 }
 

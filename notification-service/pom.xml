@@ -126,9 +126,16 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>**/model/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/enums/**</exclude>
+                                <exclude>**/exception/**</exclude>
+                                <exclude>**/messaging/**</exclude>
+                                <exclude>**/repository/**</exclude>
                                 <exclude>**/dto/**</exclude>
+                                <exclude>**/security/**</exclude>
+                                <exclude>**/util/**</exclude>
                                 <exclude>**/request/**</exclude>
+                                <exclude>**/config/**</exclude>
                             </excludes>
                         </configuration>
 

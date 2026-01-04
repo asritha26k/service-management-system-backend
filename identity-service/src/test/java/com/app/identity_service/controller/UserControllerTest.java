@@ -1,6 +1,8 @@
 package com.app.identity_service.controller;
 
+import com.app.identity_service.dto.PagedResponse;
 import com.app.identity_service.dto.UserAuthResponse;
+import com.app.identity_service.dto.UserDetailResponse;
 import com.app.identity_service.exception.GlobalExceptionHandler;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.service.UserService;
@@ -16,6 +18,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -64,6 +68,7 @@ class UserControllerTest {
     private ObjectMapper objectMapper;
 
     private UserAuthResponse userResponse;
+    private UserDetailResponse userDetailResponse;
 
     @BeforeEach
     void setUp() {
@@ -74,26 +79,55 @@ class UserControllerTest {
         userResponse.setIsActive(true);
         userResponse.setIsEmailVerified(true);
         userResponse.setForcePasswordChange(false);
+
+        userDetailResponse = new UserDetailResponse();
+        userDetailResponse.setId("user-1");
+        userDetailResponse.setEmail("user@example.com");
+        userDetailResponse.setRole("CUSTOMER");
+        userDetailResponse.setIsActive(true);
+        userDetailResponse.setIsEmailVerified(true);
+        userDetailResponse.setName("Test User");
+        userDetailResponse.setPhone("1234567890");
+        userDetailResponse.setAddress("123 Test St");
+        userDetailResponse.setCity("Test City");
+        userDetailResponse.setState("TS");
+        userDetailResponse.setPincode("12345");
     }
 
     @Test
     void getUsersByRole_ShouldReturnOk() throws Exception {
-        List<UserAuthResponse> users = Arrays.asList(userResponse);
-        when(userService.getUsersByRole("CUSTOMER")).thenReturn(users);
+        List<UserDetailResponse> users = Arrays.asList(userDetailResponse);
+        PagedResponse<UserDetailResponse> pagedResponse = new PagedResponse<>();
+        pagedResponse.setContent(users);
+        pagedResponse.setPageNumber(0);
+        pagedResponse.setPageSize(20);
+        pagedResponse.setTotalElements(1);
+        pagedResponse.setTotalPages(1);
+        pagedResponse.setLast(true);
 
-        mockMvc.perform(get("/api/users/role/CUSTOMER"))
+        when(userService.getUsersWithDetailsByRole(eq("CUSTOMER"), any())).thenReturn(pagedResponse);
+
+        mockMvc.perform(get("/api/users/role/CUSTOMER")
+                .param("page", "0")
+                .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("user-1"))
-                .andExpect(jsonPath("$[0].email").value("user@example.com"))
-                .andExpect(jsonPath("$[0].role").value("CUSTOMER"));
+                .andExpect(jsonPath("$.content[0].id").value("user-1"))
+                .andExpect(jsonPath("$.content[0].email").value("user@example.com"))
+                .andExpect(jsonPath("$.content[0].role").value("CUSTOMER"))
+                .andExpect(jsonPath("$.content[0].name").value("Test User"))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(20))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
     void getUsersByRole_ShouldReturnBadRequest_WhenInvalidRole() throws Exception {
-        when(userService.getUsersByRole("INVALID"))
+        when(userService.getUsersWithDetailsByRole(eq("INVALID"), any()))
                 .thenThrow(new IllegalArgumentException("Invalid role: INVALID"));
 
-        mockMvc.perform(get("/api/users/role/INVALID"))
+        mockMvc.perform(get("/api/users/role/INVALID")
+                .param("page", "0")
+                .param("size", "20"))
                 .andExpect(status().isBadRequest());
     }
 

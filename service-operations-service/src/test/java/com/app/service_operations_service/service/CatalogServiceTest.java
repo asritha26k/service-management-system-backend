@@ -207,5 +207,193 @@ class CatalogServiceTest {
         assertEquals("category-1", responses.get(0).getCategoryId());
         verify(itemRepository, times(1)).findByCategoryIdAndIsActiveTrue("category-1");
     }
+
+    // Additional tests for improved coverage
+
+    @Test
+    void deleteService_ShouldDeleteService() {
+        when(itemRepository.findById("service-1")).thenReturn(Optional.of(serviceItem));
+        doNothing().when(itemRepository).delete(serviceItem);
+
+        catalogService.deleteService("service-1");
+
+        verify(itemRepository, times(1)).findById("service-1");
+        verify(itemRepository, times(1)).delete(serviceItem);
+    }
+
+    @Test
+    void deleteService_ShouldThrowNotFoundException_WhenNotFound() {
+        when(itemRepository.findById("invalid-id")).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> catalogService.deleteService("invalid-id"));
+        verify(itemRepository, never()).delete(any(ServiceItem.class));
+    }
+
+    @Test
+    void createService_ShouldIncludeImages() {
+        CreateServiceItemRequest request = new CreateServiceItemRequest();
+        request.setCategoryId("category-1");
+        request.setName("Leak Repair");
+        request.setDescription("Fix water leaks");
+        request.setBasePrice(new BigDecimal("100.00"));
+        request.setEstimatedDurationMinutes(60L);
+        request.setSlaHours(24);
+        
+        CreateServiceItemRequest.ServiceItemImagePayload image = new CreateServiceItemRequest.ServiceItemImagePayload();
+        image.setUrl("http://example.com/image.jpg");
+        image.setAlt("leak repair image");
+        request.setImages(Arrays.asList(image));
+
+        when(itemRepository.save(any(ServiceItem.class))).thenReturn(serviceItem);
+
+        ServiceItemResponse response = catalogService.createService(request);
+
+        assertNotNull(response);
+        verify(itemRepository, times(1)).save(any(ServiceItem.class));
+    }
+
+    @Test
+    void createService_ShouldHandleNullImages() {
+        CreateServiceItemRequest request = new CreateServiceItemRequest();
+        request.setCategoryId("category-1");
+        request.setName("Leak Repair");
+        request.setDescription("Fix water leaks");
+        request.setBasePrice(new BigDecimal("100.00"));
+        request.setEstimatedDurationMinutes(60L);
+        request.setSlaHours(24);
+        request.setImages(null);
+
+        when(itemRepository.save(any(ServiceItem.class))).thenReturn(serviceItem);
+
+        ServiceItemResponse response = catalogService.createService(request);
+
+        assertNotNull(response);
+        verify(itemRepository, times(1)).save(any(ServiceItem.class));
+    }
+
+    @Test
+    void updateService_ShouldUpdateWithImages() {
+        UpdateServiceItemRequest request = new UpdateServiceItemRequest();
+        request.setName("Updated Service");
+        request.setDescription("Updated description");
+        request.setBasePrice(new BigDecimal("150.00"));
+        request.setEstimatedDurationMinutes(90L);
+        request.setSlaHours(48);
+        request.setActive(true);
+        
+        UpdateServiceItemRequest.ServiceItemImagePayload image = new UpdateServiceItemRequest.ServiceItemImagePayload();
+        image.setUrl("http://example.com/updated.jpg");
+        image.setAlt("updated image");
+        request.setImages(Arrays.asList(image));
+
+        when(itemRepository.findById("service-1")).thenReturn(Optional.of(serviceItem));
+        when(itemRepository.save(any(ServiceItem.class))).thenReturn(serviceItem);
+
+        ServiceItemResponse response = catalogService.updateService("service-1", request);
+
+        assertNotNull(response);
+        verify(itemRepository, times(1)).save(any(ServiceItem.class));
+    }
+
+    @Test
+    void updateService_ShouldUpdateWithoutChangingActive() {
+        UpdateServiceItemRequest request = new UpdateServiceItemRequest();
+        request.setName("Updated Service");
+        request.setDescription("Updated description");
+        request.setBasePrice(new BigDecimal("150.00"));
+        request.setEstimatedDurationMinutes(90L);
+        request.setSlaHours(48);
+        request.setActive(null);
+
+        when(itemRepository.findById("service-1")).thenReturn(Optional.of(serviceItem));
+        when(itemRepository.save(any(ServiceItem.class))).thenReturn(serviceItem);
+
+        ServiceItemResponse response = catalogService.updateService("service-1", request);
+
+        assertNotNull(response);
+        verify(itemRepository, times(1)).save(any(ServiceItem.class));
+    }
+
+    @Test
+    void updateService_ShouldHandleNullImages() {
+        UpdateServiceItemRequest request = new UpdateServiceItemRequest();
+        request.setName("Updated Service");
+        request.setDescription("Updated description");
+        request.setBasePrice(new BigDecimal("150.00"));
+        request.setEstimatedDurationMinutes(90L);
+        request.setSlaHours(48);
+        request.setActive(true);
+        request.setImages(null);
+
+        when(itemRepository.findById("service-1")).thenReturn(Optional.of(serviceItem));
+        when(itemRepository.save(any(ServiceItem.class))).thenReturn(serviceItem);
+
+        ServiceItemResponse response = catalogService.updateService("service-1", request);
+
+        assertNotNull(response);
+        verify(itemRepository, times(1)).save(any(ServiceItem.class));
+    }
+
+    @Test
+    void listServicesByCategory_ShouldReturnEmptyList_WhenNoneFound() {
+        when(itemRepository.findByCategoryIdAndIsActiveTrue("category-1")).thenReturn(Arrays.asList());
+
+        List<ServiceItemResponse> responses = catalogService.listServicesByCategory("category-1");
+
+        assertNotNull(responses);
+        assertEquals(0, responses.size());
+        verify(itemRepository, times(1)).findByCategoryIdAndIsActiveTrue("category-1");
+    }
+
+    @Test
+    void listCategories_ShouldReturnEmptyList_WhenNoneFound() {
+        when(categoryRepository.findByIsActiveTrue()).thenReturn(Arrays.asList());
+
+        List<ServiceCategoryResponse> responses = catalogService.listCategories();
+
+        assertNotNull(responses);
+        assertEquals(0, responses.size());
+        verify(categoryRepository, times(1)).findByIsActiveTrue();
+    }
+
+    @Test
+    void listServices_ShouldReturnEmptyList_WhenNoneFound() {
+        when(itemRepository.findByIsActiveTrue()).thenReturn(Arrays.asList());
+
+        List<ServiceItemResponse> responses = catalogService.listServices();
+
+        assertNotNull(responses);
+        assertEquals(0, responses.size());
+        verify(itemRepository, times(1)).findByIsActiveTrue();
+    }
+
+    @Test
+    void getServiceById_ShouldHandleNullDuration() {
+        serviceItem.setEstimatedDuration(null);
+        when(itemRepository.findById("service-1")).thenReturn(Optional.of(serviceItem));
+
+        ServiceItemResponse response = catalogService.getServiceById("service-1");
+
+        assertNotNull(response);
+        assertNull(response.getEstimatedDurationMinutes());
+    }
+
+    @Test
+    void createService_ShouldMapEstimatedDuration() {
+        CreateServiceItemRequest request = new CreateServiceItemRequest();
+        request.setCategoryId("category-1");
+        request.setName("Leak Repair");
+        request.setDescription("Fix water leaks");
+        request.setBasePrice(new BigDecimal("100.00"));
+        request.setEstimatedDurationMinutes(120L);
+        request.setSlaHours(24);
+
+        when(itemRepository.save(any(ServiceItem.class))).thenReturn(serviceItem);
+
+        ServiceItemResponse response = catalogService.createService(request);
+
+        assertNotNull(response);
+        verify(itemRepository, times(1)).save(any(ServiceItem.class));
+    }
 }
 

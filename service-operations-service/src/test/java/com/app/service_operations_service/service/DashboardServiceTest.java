@@ -155,5 +155,295 @@ class DashboardServiceTest {
         stats.put("averageWorkloadRatio", 0.75);
         return stats;
     }
+
+    // Additional tests for improved coverage
+
+    @Test
+    void getDashboardSummary_ShouldHandleNullTechStats() {
+        List<ServiceRequest> requests = Arrays.asList(serviceRequest);
+        List<Invoice> invoices = Arrays.asList(invoice);
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenReturn(null);
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertEquals(0, response.getActiveTechnicians());
+    }
+
+    @Test
+    void getDashboardSummary_ShouldHandleTechnicianClientException() {
+        List<ServiceRequest> requests = Arrays.asList(serviceRequest);
+        List<Invoice> invoices = Arrays.asList(invoice);
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenThrow(new RuntimeException("Service unavailable"));
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertEquals(0, response.getActiveTechnicians());
+    }
+
+    @Test
+    void getDashboardSummary_ShouldCalculatePendingPayments() {
+        ServiceRequest completedRequest = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now().minusSeconds(3600))
+                .completedAt(Instant.now())
+                .build();
+
+        Invoice paidInvoice = Invoice.builder()
+                .id("invoice-1")
+                .customerId("customer-1")
+                .totalAmount(new BigDecimal("100.00"))
+                .paymentStatus(PaymentStatus.PAID)
+                .createdAt(Instant.now())
+                .build();
+
+        Invoice pendingInvoice = Invoice.builder()
+                .id("invoice-2")
+                .customerId("customer-1")
+                .totalAmount(new BigDecimal("50.00"))
+                .paymentStatus(PaymentStatus.PENDING)
+                .createdAt(Instant.now())
+                .build();
+
+        List<ServiceRequest> requests = Arrays.asList(completedRequest);
+        List<Invoice> invoices = Arrays.asList(paidInvoice, pendingInvoice);
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenReturn(createTechStats());
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertEquals(1, response.getPendingPayments());
+    }
+
+    @Test
+    void getDashboardSummary_ShouldCalculateMonthlyRevenue() {
+        ServiceRequest request = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now().minusSeconds(3600))
+                .completedAt(Instant.now())
+                .build();
+
+        Invoice invoice = Invoice.builder()
+                .id("invoice-1")
+                .customerId("customer-1")
+                .totalAmount(new BigDecimal("110.00"))
+                .paymentStatus(PaymentStatus.PAID)
+                .createdAt(Instant.now())
+                .build();
+
+        List<ServiceRequest> requests = Arrays.asList(request);
+        List<Invoice> invoices = Arrays.asList(invoice);
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenReturn(createTechStats());
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertNotNull(response.getMonthlyRevenue());
+    }
+
+    @Test
+    void getDashboardSummary_ShouldCountActiveAndCompletedRequests() {
+        ServiceRequest activeRequest = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.ASSIGNED)
+                .createdAt(Instant.now())
+                .build();
+
+        ServiceRequest completedRequest = ServiceRequest.builder()
+                .id("req-2")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now().minusSeconds(3600))
+                .completedAt(Instant.now())
+                .build();
+
+        List<ServiceRequest> requests = Arrays.asList(activeRequest, completedRequest);
+        List<Invoice> invoices = Arrays.asList(invoice);
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenReturn(createTechStats());
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertEquals(1, response.getTotalActiveRequests());
+        assertEquals(1, response.getTotalCompletedRequests());
+    }
+
+    @Test
+    void getCategoryStatistics_ShouldHandleEmptyRequests() {
+        when(serviceRequestRepository.findAll()).thenReturn(List.of());
+        when(serviceItemRepository.findAll()).thenReturn(List.of());
+        when(serviceCategoryRepository.findAll()).thenReturn(List.of());
+        when(serviceCategoryRepository.count()).thenReturn(0L);
+
+        CategoryStatsResponse response = dashboardService.getCategoryStatistics();
+
+        assertNotNull(response);
+        assertEquals(0, response.getCategories().size());
+        assertEquals(0L, response.getTotalCategories());
+        assertEquals(0L, response.getTotalRequests());
+    }
+
+    @Test
+    void getAverageResolutionTime_ShouldHandleNullDates() {
+        ServiceRequest requestWithoutDates = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(null)
+                .completedAt(null)
+                .build();
+
+        List<ServiceRequest> completedRequests = Arrays.asList(requestWithoutDates);
+        when(serviceRequestRepository.findByStatus(RequestStatus.COMPLETED)).thenReturn(completedRequests);
+
+        ResolutionTimeResponse response = dashboardService.getAverageResolutionTime();
+
+        assertNotNull(response);
+        assertEquals(0.0, response.getAverageResolutionTimeHours());
+    }
+
+    @Test
+    void getAverageResolutionTime_ShouldCalculateMultipleRequests() {
+        ServiceRequest request1 = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now().minusSeconds(7200))
+                .completedAt(Instant.now())
+                .build();
+
+        ServiceRequest request2 = ServiceRequest.builder()
+                .id("req-2")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now().minusSeconds(3600))
+                .completedAt(Instant.now())
+                .build();
+
+        List<ServiceRequest> completedRequests = Arrays.asList(request1, request2);
+        when(serviceRequestRepository.findByStatus(RequestStatus.COMPLETED)).thenReturn(completedRequests);
+
+        ResolutionTimeResponse response = dashboardService.getAverageResolutionTime();
+
+        assertNotNull(response);
+        assertTrue(response.getAverageResolutionTimeHours() > 0);
+    }
+
+    @Test
+    void getTechnicianWorkload_ShouldConvertLongValues() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalTechnicians", 10);
+        stats.put("availableTechnicians", 7);
+        stats.put("averageWorkloadRatio", 0.75);
+
+        when(technicianClient.getStats()).thenReturn(stats);
+
+        TechnicianWorkloadResponse response = dashboardService.getTechnicianWorkload();
+
+        assertNotNull(response);
+        assertEquals(10L, response.getTotalTechnicians());
+    }
+
+    @Test
+    void getTechnicianWorkload_ShouldHandleNullStats() {
+        when(technicianClient.getStats()).thenReturn(new HashMap<>());
+
+        TechnicianWorkloadResponse response = dashboardService.getTechnicianWorkload();
+
+        assertNotNull(response);
+        assertEquals(0L, response.getTotalTechnicians());
+        assertEquals(0.0, response.getAverageWorkloadRatio());
+    }
+
+    @Test
+    void getDashboardSummary_ShouldCountRequestsByStatus() {
+        ServiceRequest requestedStatus = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.REQUESTED)
+                .createdAt(Instant.now())
+                .build();
+
+        ServiceRequest assignedStatus = ServiceRequest.builder()
+                .id("req-2")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.ASSIGNED)
+                .createdAt(Instant.now())
+                .build();
+
+        List<ServiceRequest> requests = Arrays.asList(requestedStatus, assignedStatus);
+        List<Invoice> invoices = Arrays.asList();
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenReturn(createTechStats());
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertNotNull(response.getServiceRequestsByStatus());
+        assertTrue(response.getServiceRequestsByStatus().size() >= 2);
+    }
+
+    @Test
+    void getDashboardSummary_ShouldGroupRequestsByService() {
+        ServiceRequest request1 = ServiceRequest.builder()
+                .id("req-1")
+                .customerId("customer-1")
+                .serviceId("service-1")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now())
+                .build();
+
+        ServiceRequest request2 = ServiceRequest.builder()
+                .id("req-2")
+                .customerId("customer-1")
+                .serviceId("service-2")
+                .status(RequestStatus.COMPLETED)
+                .createdAt(Instant.now())
+                .build();
+
+        List<ServiceRequest> requests = Arrays.asList(request1, request2);
+        List<Invoice> invoices = Arrays.asList();
+
+        when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(invoiceRepository.findAll()).thenReturn(invoices);
+        when(technicianClient.getStats()).thenReturn(createTechStats());
+
+        DashboardSummaryResponse response = dashboardService.getDashboardSummary();
+
+        assertNotNull(response);
+        assertNotNull(response.getServiceRequestsByCategory());
+    }
 }
 

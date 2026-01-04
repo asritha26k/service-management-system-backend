@@ -1,16 +1,24 @@
 package com.app.identity_service.service;
 
+import com.app.identity_service.dto.PagedResponse;
 import com.app.identity_service.dto.UserAuthResponse;
+import com.app.identity_service.dto.UserDetailResponse;
 import com.app.identity_service.entity.UserAuth;
+import com.app.identity_service.entity.UserProfile;
 import com.app.identity_service.entity.UserRole;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.repository.UserAuthRepository;
+import com.app.identity_service.repository.UserProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,10 +34,14 @@ class UserServiceTest {
     @Mock
     private UserAuthRepository userAuthRepository;
 
+    @Mock
+    private UserProfileRepository userProfileRepository;
+
     @InjectMocks
     private UserService userService;
 
     private UserAuth userAuth;
+    private UserProfile userProfile;
 
     @BeforeEach
     void setUp() {
@@ -41,6 +53,15 @@ class UserServiceTest {
         userAuth.setIsActive(true);
         userAuth.setIsEmailVerified(true);
         userAuth.setForcePasswordChange(false);
+
+        userProfile = new UserProfile();
+        userProfile.setUserId("user-1");
+        userProfile.setName("Test User");
+        userProfile.setPhone("1234567890");
+        userProfile.setAddress("123 Test St");
+        userProfile.setCity("Test City");
+        userProfile.setState("TS");
+        userProfile.setPincode("12345");
     }
 
     @Test
@@ -196,6 +217,62 @@ class UserServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> 
             userService.activateUser("invalid-id"));
+    }
+
+    @Test
+    void getUsersWithDetailsByRole_ShouldReturnPagedResponse() {
+        List<UserAuth> users = Arrays.asList(userAuth);
+        Page<UserAuth> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
+        
+        when(userAuthRepository.findByRole(eq(UserRole.CUSTOMER), any(Pageable.class))).thenReturn(userPage);
+        when(userProfileRepository.findByUserId("user-1")).thenReturn(Optional.of(userProfile));
+
+        PagedResponse<UserDetailResponse> response = userService.getUsersWithDetailsByRole("CUSTOMER", PageRequest.of(0, 10));
+
+        assertNotNull(response);
+        assertEquals(1, response.getContent().size());
+        assertEquals(0, response.getPageNumber());
+        assertEquals(10, response.getPageSize());
+        assertEquals(1, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertTrue(response.isLast());
+        
+        UserDetailResponse userDetail = response.getContent().get(0);
+        assertEquals("user-1", userDetail.getId());
+        assertEquals("user@example.com", userDetail.getEmail());
+        assertEquals("CUSTOMER", userDetail.getRole());
+        assertEquals("Test User", userDetail.getName());
+        assertEquals("1234567890", userDetail.getPhone());
+        
+        verify(userAuthRepository, times(1)).findByRole(eq(UserRole.CUSTOMER), any(Pageable.class));
+        verify(userProfileRepository, times(1)).findByUserId("user-1");
+    }
+
+    @Test
+    void getUsersWithDetailsByRole_ShouldThrowIllegalArgumentException_WhenInvalidRole() {
+        assertThrows(IllegalArgumentException.class, () -> 
+            userService.getUsersWithDetailsByRole("INVALID_ROLE", PageRequest.of(0, 10)));
+    }
+
+    @Test
+    void getUsersWithDetailsByRole_ShouldHandleUserWithoutProfile() {
+        List<UserAuth> users = Arrays.asList(userAuth);
+        Page<UserAuth> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
+        
+        when(userAuthRepository.findByRole(eq(UserRole.CUSTOMER), any(Pageable.class))).thenReturn(userPage);
+        when(userProfileRepository.findByUserId("user-1")).thenReturn(Optional.empty());
+
+        PagedResponse<UserDetailResponse> response = userService.getUsersWithDetailsByRole("CUSTOMER", PageRequest.of(0, 10));
+
+        assertNotNull(response);
+        assertEquals(1, response.getContent().size());
+        
+        UserDetailResponse userDetail = response.getContent().get(0);
+        assertEquals("user-1", userDetail.getId());
+        assertEquals("user@example.com", userDetail.getEmail());
+        assertNull(userDetail.getName());
+        assertNull(userDetail.getPhone());
+        assertNull(userDetail.getAddress());
     }
 }
 

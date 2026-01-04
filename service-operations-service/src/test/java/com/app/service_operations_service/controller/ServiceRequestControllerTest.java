@@ -280,5 +280,101 @@ class ServiceRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(10));
     }
+
+    // Additional tests for missing coverage
+
+    @Test
+    void getByCustomerWithTechnicianDetails_ShouldReturnOk() throws Exception {
+        List<ServiceRequestWithTechnicianResponse> requests = Arrays.asList(withTechnicianResponse);
+        when(serviceRequestService.getByCustomerWithTechnicianDetails("customer-1")).thenReturn(requests);
+
+        mockMvc.perform(get("/api/service-requests/customer/customer-1/with-technician"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("req-1"))
+                .andExpect(jsonPath("$[0].customerId").value("customer-1"));
+    }
+
+    @Test
+    void getByCustomerWithTechnicianDetails_ShouldReturnEmptyList() throws Exception {
+        List<ServiceRequestWithTechnicianResponse> requests = Arrays.asList();
+        when(serviceRequestService.getByCustomerWithTechnicianDetails("customer-1")).thenReturn(requests);
+
+        mockMvc.perform(get("/api/service-requests/customer/customer-1/with-technician"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+    }
+
+    @Test
+    void getMyTechnicianRequestsWithCustomerDetails_ShouldReturnOk() throws Exception {
+        List<ServiceRequestWithCustomerResponse> requests = Arrays.asList(withCustomerResponse);
+        when(serviceRequestService.getByTechnicianUserIdWithCustomerDetails("tech-user-1")).thenReturn(requests);
+
+        mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
+                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("req-1"))
+                .andExpect(jsonPath("$[0].customerId").value("customer-1"));
+    }
+
+    @Test
+    void getMyTechnicianRequestsWithCustomerDetails_ShouldReturnEmptyList() throws Exception {
+        List<ServiceRequestWithCustomerResponse> requests = Arrays.asList();
+        when(serviceRequestService.getByTechnicianUserIdWithCustomerDetails("tech-user-1")).thenReturn(requests);
+
+        mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
+                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+    }
+
+    @Test
+    void getMyTechnicianRequestsWithCustomerDetails_ShouldReturnForbidden_WhenUserIdMissing() throws Exception {
+        mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
+                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getByCustomerWithTechnicianDetails_ShouldReturnMultipleRequests() throws Exception {
+        ServiceRequestWithTechnicianResponse response2 = new ServiceRequestWithTechnicianResponse();
+        response2.setId("req-2");
+        response2.setRequestNumber("REQ-87654321");
+        response2.setCustomerId("customer-1");
+        response2.setServiceId("service-2");
+        response2.setStatus(RequestStatus.IN_PROGRESS);
+        response2.setTechnicianId("tech-2");
+
+        List<ServiceRequestWithTechnicianResponse> requests = Arrays.asList(withTechnicianResponse, response2);
+        when(serviceRequestService.getByCustomerWithTechnicianDetails("customer-1")).thenReturn(requests);
+
+        mockMvc.perform(get("/api/service-requests/customer/customer-1/with-technician"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value("req-1"))
+                .andExpect(jsonPath("$[1].id").value("req-2"));
+    }
+
+    @Test
+    void getMyTechnicianRequestsWithCustomerDetails_ShouldReturnMultipleRequests() throws Exception {
+        ServiceRequestWithCustomerResponse response2 = new ServiceRequestWithCustomerResponse();
+        response2.setId("req-2");
+        response2.setRequestNumber("REQ-87654321");
+        response2.setCustomerId("customer-2");
+        response2.setServiceId("service-2");
+        response2.setStatus(RequestStatus.IN_PROGRESS);
+
+        List<ServiceRequestWithCustomerResponse> requests = Arrays.asList(withCustomerResponse, response2);
+        when(serviceRequestService.getByTechnicianUserIdWithCustomerDetails("tech-user-1")).thenReturn(requests);
+
+        mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
+                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value("req-1"))
+                .andExpect(jsonPath("$[1].id").value("req-2"));
+    }
 }
 

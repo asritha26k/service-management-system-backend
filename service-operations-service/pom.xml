@@ -105,9 +105,19 @@
                         </goals>
                         <configuration>
                             <excludes>
+                                <exclude>**/entity/**</exclude>
                                 <exclude>**/model/**</exclude>
+                                <exclude>**/enums/**</exclude>
+                                <exclude>**/exception/**</exclude>
+                                <exclude>**/messaging/**</exclude>
+                                <exclude>**/repository/**</exclude>
                                 <exclude>**/dto/**</exclude>
+                                <exclude>**/client/**</exclude>
+                                <exclude>**/security/**</exclude>
+                                <exclude>**/util/**</exclude>
                                 <exclude>**/request/**</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/ServiceOperationsServiceApplication.class</exclude>
                             </excludes>
                         </configuration>
 

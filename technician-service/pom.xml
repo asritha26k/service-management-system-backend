@@ -109,6 +109,8 @@
                                 <exclude>**/util/**</exclude>
                                 <exclude>**/feign/**</exclude>
                                 <exclude>**/config/**</exclude>
+                                <exclude>**/repository/**</exclude>
+                                <exclude>**/exception/**</exclude>
                             </excludes>
                         </configuration>
 

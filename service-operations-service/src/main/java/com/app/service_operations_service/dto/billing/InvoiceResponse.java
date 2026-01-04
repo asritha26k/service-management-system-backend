@@ -9,6 +9,7 @@ public class InvoiceResponse {
     private String id;
     private String requestId;
     private String customerId;
+    private String serviceName;
     private BigDecimal serviceAmount;
     private BigDecimal taxAmount;
     private BigDecimal totalAmount;
@@ -39,6 +40,14 @@ public class InvoiceResponse {
 
     public void setCustomerId(String customerId) {
         this.customerId = customerId;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public BigDecimal getServiceAmount() {

@@ -1,8 +1,13 @@
 package com.app.identity_service.controller;
 
+import com.app.identity_service.dto.PagedResponse;
 import com.app.identity_service.dto.UserAuthResponse;
+import com.app.identity_service.dto.UserDetailResponse;
 import com.app.identity_service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +25,17 @@ public class UserController {
 	private UserService userService;
 
 	
-	  //Get all users by role endpoint
+	  //Get all users by role endpoint with pagination support and profile details
 	 
 	@GetMapping("/role/{role}")
-	public ResponseEntity<List<UserAuthResponse>> getUsersByRole(@PathVariable("role") String role) {
-		List<UserAuthResponse> users = userService.getUsersByRole(role);
+	public ResponseEntity<PagedResponse<UserDetailResponse>> getUsersByRole(
+			@PathVariable("role") String role,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "size", defaultValue = "20") int size,
+			@RequestParam(value = "sort", defaultValue = "email") String sortBy) {
+		
+		Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+		PagedResponse<UserDetailResponse> users = userService.getUsersWithDetailsByRole(role, pageable);
 		return ResponseEntity.ok(users);
 	}
 

@@ -20,10 +20,8 @@ import com.app.technicianservice.dto.AvailabilityUpdateRequest;
 import com.app.technicianservice.dto.CreateProfileRequest;
 import com.app.technicianservice.dto.IdMessageResponse;
 import com.app.technicianservice.dto.StatsResponse;
-import com.app.technicianservice.dto.SubmitRatingRequest;
 import com.app.technicianservice.dto.TechnicianApplicationRequest;
 import com.app.technicianservice.dto.TechnicianProfileResponse;
-import com.app.technicianservice.dto.TechnicianRatingResponse;
 import com.app.technicianservice.dto.TechnicianSummaryResponse;
 import com.app.technicianservice.dto.WorkloadResponse;
 import com.app.technicianservice.security.RequestUser;
@@ -119,32 +117,6 @@ public class TechnicianController {
         return new IdMessageResponse(response.getId(), "Application rejected successfully");
     }
 
-    // ============ Rating Endpoints (MUST come before other /{id}/... patterns)
-    // ============
-
-    @PostMapping("/{technicianId}/ratings")
-    @ResponseStatus(HttpStatus.CREATED)
-    public IdMessageResponse submitRating(
-            RequestUser user,
-            @PathVariable("technicianId") String technicianId,
-            @Valid @RequestBody SubmitRatingRequest request) {
-        TechnicianRatingResponse rating = technicianService.submitRating(user.userId(), technicianId, request);
-        return new IdMessageResponse(rating.getId(), "Rating submitted successfully");
-    }
-
-    @GetMapping("/{technicianId}/ratings")
-    public List<TechnicianRatingResponse> getTechnicianRatings(
-            @PathVariable("technicianId") String technicianId) {
-        return technicianService.getTechnicianRatings(technicianId);
-    }
-
-    @GetMapping("/{technicianId}/ratings/my-rating")
-    public TechnicianRatingResponse getMyRating(
-            RequestUser user,
-            @PathVariable("technicianId") String technicianId) {
-        return technicianService.getCustomerRating(technicianId, user.userId());
-    }
-
     // ============ Other /{id}/... endpoints ============
 
     @GetMapping("/{id}/workload")
@@ -167,15 +139,6 @@ public class TechnicianController {
             @PathVariable("id") String id,
             @Valid @RequestBody AvailabilityUpdateRequest request) {
         technicianService.updateAvailability(user, id, request);
-    }
-
-    @PutMapping("/{id}/rating")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateRating(
-            RequestUser user,
-            @PathVariable("id") String id,
-            @RequestBody Double rating) {
-        technicianService.updateRating(user, id, rating);
     }
 
     // ============ Generic /{id} endpoint (MUST BE LAST to avoid matching other

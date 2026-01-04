@@ -6,7 +6,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import com.app.technicianservice.repository.TechnicianProfileRepository;
 import com.app.technicianservice.repository.TechnicianApplicationRepository;
 import com.app.technicianservice.repository.TechnicianScheduleRepository;
-import com.app.technicianservice.repository.TechnicianRatingRepository;
 
 @SpringBootTest
 class TechnicianServiceApplicationTests {
@@ -19,9 +18,6 @@ class TechnicianServiceApplicationTests {
 
 	@MockBean
 	private TechnicianScheduleRepository technicianScheduleRepository;
-
-	@MockBean
-	private TechnicianRatingRepository technicianRatingRepository;
 
 	@Test
 	void contextLoads() {

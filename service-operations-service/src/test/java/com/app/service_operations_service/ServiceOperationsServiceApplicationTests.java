@@ -21,7 +21,6 @@ import com.app.service_operations_service.repository.ServiceCategoryRepository;
 import com.app.service_operations_service.repository.ServiceItemRepository;
 import com.app.service_operations_service.repository.InvoiceRepository;
 import com.app.service_operations_service.repository.ServiceRequestRepository;
-import com.app.service_operations_service.repository.TechnicianRatingRepository;
 
 @SpringBootTest
 class ServiceOperationsServiceApplicationTests {
@@ -76,9 +75,6 @@ class ServiceOperationsServiceApplicationTests {
 
 	@MockBean
 	private ServiceRequestRepository serviceRequestRepository;
-
-	@MockBean
-	private TechnicianRatingRepository technicianRatingRepository;
 
 	@Test
 	void contextLoads() {

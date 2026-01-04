@@ -31,8 +31,5 @@ public class RegisterManagerRequest {
 	@Size(max = 20, message = "Phone must not exceed 20 characters")
 	@Pattern(regexp = "^[0-9+\\-\\s]*$", message = "Phone must contain only digits, +, -, or spaces")
 	private String phone;
-
-	@Size(max = 100, message = "Department must not exceed 100 characters")
-	private String department;
 }
 

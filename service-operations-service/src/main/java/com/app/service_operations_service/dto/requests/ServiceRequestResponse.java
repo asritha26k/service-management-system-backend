@@ -13,11 +13,14 @@ public class ServiceRequestResponse {
     private String requestNumber;
     private String customerId;
     private String serviceId;
+    private String serviceName;
     private String priority;
     private RequestStatus status;
     private Instant preferredDate;
     private String address;
     private String technicianId;
+    private String technicianName;
+    private String technicianPhone;
     private Instant assignedAt;
     private Instant acceptedAt;
     private Instant completedAt;

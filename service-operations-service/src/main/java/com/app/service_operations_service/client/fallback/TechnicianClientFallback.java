@@ -28,11 +28,6 @@ public class TechnicianClientFallback implements TechnicianClient {
     }
 
     @Override
-    public void updateRating(String id, Double rating) {
-        log.warn("Technician service is unavailable. Cannot update rating for technician: {}", id);
-    }
-
-    @Override
     public void updateWorkload(String id, Integer currentWorkload) {
         log.warn("Technician service is unavailable. Cannot update workload for technician: {}", id);
     }

@@ -60,6 +60,12 @@ public class CatalogController {
         catalogService.updateService(id, request);
     }
 
+    @DeleteMapping("/services/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteService(@PathVariable("id") String id) {
+        catalogService.deleteService(id);
+    }
+
     @GetMapping("/services/category/{categoryId}")
     public List<ServiceItemResponse> getByCategory(
             @PathVariable("categoryId") String categoryId) {

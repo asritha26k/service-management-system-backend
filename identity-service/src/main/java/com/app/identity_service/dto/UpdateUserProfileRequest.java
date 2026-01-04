@@ -34,9 +34,6 @@ public class UpdateUserProfileRequest {
 	@Pattern(regexp = "^[0-9]*$", message = "Pincode must contain only digits")
 	private String pincode;
 
-	@Size(max = 100, message = "Department must not exceed 100 characters")
-	private String department;
-
 	public UpdateUserProfileRequest(String name) {
 		this.name = name;
 	}

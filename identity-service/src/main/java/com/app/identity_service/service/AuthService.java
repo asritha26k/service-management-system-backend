@@ -117,12 +117,11 @@ public class AuthService {
         UpdateUserProfileRequest profileRequest = new UpdateUserProfileRequest();
         profileRequest.setName(request.getName());
         profileRequest.setPhone(request.getPhone());
-        profileRequest.setDepartment(request.getDepartment());
 
         userProfileService.createProfile(
                 savedUser.getId(),
                 profileRequest,
-                request.getDepartment());
+                null);
 
         sendCredentialsEmailSafely(request.getEmail(), temporaryPassword, role);
 

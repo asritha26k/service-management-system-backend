@@ -13,6 +13,7 @@ public class ServiceRequestWithCustomerResponse {
     private String requestNumber;
     private String customerId;
     private String serviceId;
+    private String serviceName;
     private String priority;
     private RequestStatus status;
     private Instant preferredDate;

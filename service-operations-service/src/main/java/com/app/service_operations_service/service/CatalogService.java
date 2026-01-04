@@ -103,6 +103,12 @@ public class CatalogService {
                 .toList();
     }
 
+    public void deleteService(String id) {
+        ServiceItem item = itemRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Service item not found: " + id));
+        itemRepository.delete(item);
+    }
+
     private ServiceCategoryResponse toCategoryResponse(ServiceCategory category) {
         ServiceCategoryResponse response = new ServiceCategoryResponse();
         response.setId(category.getId());

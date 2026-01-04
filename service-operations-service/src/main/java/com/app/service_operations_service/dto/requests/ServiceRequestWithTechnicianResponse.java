@@ -13,6 +13,7 @@ public class ServiceRequestWithTechnicianResponse {
     private String requestNumber;
     private String customerId;
     private String serviceId;
+    private String serviceName;
     private String priority;
     private RequestStatus status;
     private Instant preferredDate;
@@ -28,6 +29,7 @@ public class ServiceRequestWithTechnicianResponse {
     public static class TechnicianDetails {
         private String id;
         private String email;
+        private String name;
         private String phone;
         private String specialization;
         private Integer experience;

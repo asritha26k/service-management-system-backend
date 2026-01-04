@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 // AdminSeeder Component
 // Automatically seeds a single ADMIN user at application startup in an idempotent manner.
 // The seeder checks if an admin with the configured email already exists before creating one.
+// @Order(Integer.MAX_VALUE) ensures this runs after schema creation
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Order(Integer.MAX_VALUE)
 public class AdminSeeder implements ApplicationRunner {
 
     private final UserAuthRepository userAuthRepository;
@@ -56,8 +59,9 @@ public class AdminSeeder implements ApplicationRunner {
             
             log.info("✓ Admin user successfully seeded with email: {}", savedAdmin.getEmail());
         } catch (Exception e) {
-            log.error("✗ Error occurred while seeding admin user: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to seed admin user", e);
+            log.warn("⚠ Could not seed admin user at startup (database may not be ready): {}", e.getMessage());
+            log.info("You may need to create the admin user manually or ensure the database and tables exist before startup.");
+            // Don't throw exception - allow application to start even if seeding fails
         }
     }
 }

@@ -1,11 +1,17 @@
 package com.app.identity_service.service;
 
+import com.app.identity_service.dto.PagedResponse;
 import com.app.identity_service.dto.UserAuthResponse;
+import com.app.identity_service.dto.UserDetailResponse;
 import com.app.identity_service.entity.UserAuth;
+import com.app.identity_service.entity.UserProfile;
 import com.app.identity_service.entity.UserRole;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.repository.UserAuthRepository;
+import com.app.identity_service.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +23,9 @@ public class UserService {
 
     @Autowired
     private UserAuthRepository userAuthRepository;
+    
+    @Autowired
+    private UserProfileRepository userProfileRepository;
 
     public List<UserAuthResponse> getUsersByRole(String role) {
         try {
@@ -24,6 +33,50 @@ public class UserService {
             return userAuthRepository.findByRole(userRole).stream()
                     .map(this::mapToUserAuthResponse)
                     .toList();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
+    }
+
+    public PagedResponse<UserAuthResponse> getUsersByRolePaginated(String role, Pageable pageable) {
+        try {
+            UserRole userRole = UserRole.valueOf(role.toUpperCase());
+            Page<UserAuth> userPage = userAuthRepository.findByRole(userRole, pageable);
+            
+            List<UserAuthResponse> content = userPage.getContent().stream()
+                    .map(this::mapToUserAuthResponse)
+                    .toList();
+            
+            return new PagedResponse<>(
+                    content,
+                    userPage.getNumber(),
+                    userPage.getSize(),
+                    userPage.getTotalElements(),
+                    userPage.getTotalPages(),
+                    userPage.isLast()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
+    }
+
+    public PagedResponse<UserDetailResponse> getUsersWithDetailsByRole(String role, Pageable pageable) {
+        try {
+            UserRole userRole = UserRole.valueOf(role.toUpperCase());
+            Page<UserAuth> userPage = userAuthRepository.findByRole(userRole, pageable);
+            
+            List<UserDetailResponse> content = userPage.getContent().stream()
+                    .map(this::mapToUserDetailResponse)
+                    .toList();
+            
+            return new PagedResponse<>(
+                    content,
+                    userPage.getNumber(),
+                    userPage.getSize(),
+                    userPage.getTotalElements(),
+                    userPage.getTotalPages(),
+                    userPage.isLast()
+            );
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid role: " + role);
         }
@@ -71,6 +124,25 @@ public class UserService {
                 user.getIsActive(),
                 user.getIsEmailVerified(),
                 user.getForcePasswordChange()
+        );
+    }
+    
+    private UserDetailResponse mapToUserDetailResponse(UserAuth user) {
+        UserProfile profile = userProfileRepository.findByUserId(user.getId()).orElse(null);
+        
+        return new UserDetailResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().toString(),
+                user.getIsActive(),
+                user.getIsEmailVerified(),
+                user.getForcePasswordChange(),
+                profile != null ? profile.getName() : null,
+                profile != null ? profile.getPhone() : null,
+                profile != null ? profile.getAddress() : null,
+                profile != null ? profile.getCity() : null,
+                profile != null ? profile.getState() : null,
+                profile != null ? profile.getPincode() : null
         );
     }
 }

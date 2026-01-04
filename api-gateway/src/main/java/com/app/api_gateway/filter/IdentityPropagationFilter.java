@@ -51,8 +51,10 @@ public class IdentityPropagationFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getURI().getPath();
         if (user.isNeedsPasswordChange()) {
-            // Only allow change-password and logout related paths (from identity service)
-            boolean isAllowed = path.contains("/api/auth/change-password") || path.contains("/api/auth/logout");
+            // Only allow change-password, logout, and public catalog paths
+            boolean isAllowed = path.contains("/api/auth/change-password")
+                    || path.contains("/api/auth/logout")
+                    || path.contains("/api/catalog/");
 
             if (!isAllowed) {
                 exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);

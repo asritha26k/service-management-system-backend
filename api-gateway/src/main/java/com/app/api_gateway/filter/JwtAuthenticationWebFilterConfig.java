@@ -15,17 +15,15 @@ import reactor.core.publisher.Mono;
 
 @Configuration
 public class JwtAuthenticationWebFilterConfig {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationWebFilterConfig.class);
-    
+
     private static final String[] PUBLIC_PATHS = {
             "/actuator/**",
-            // Gateway path patterns (no service prefix)
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/refresh",
             "/api/technicians/apply",
-            // Service-prefixed path patterns (specific service names)
             "/identity-service/api/auth/login",
             "/identity-service/api/auth/register",
             "/identity-service/api/auth/refresh",
@@ -38,16 +36,27 @@ public class JwtAuthenticationWebFilterConfig {
     @Bean
     public AuthenticationWebFilter jwtAuthWebFilter(JwtAuthenticationManager authenticationManager) {
 
-        AuthenticationWebFilter filter =
-                new AuthenticationWebFilter(authenticationManager);
+        AuthenticationWebFilter filter = new AuthenticationWebFilter(authenticationManager);
 
         filter.setRequiresAuthenticationMatcher(exchange -> {
             String path = exchange.getRequest().getURI().getPath();
-            logger.debug("Checking authentication requirement for path: {}", path);
+            String method = exchange.getRequest().getMethod().toString();
+            logger.debug("Checking authentication requirement for {} {}", method, path);
+
+            // Allow GET requests to catalog endpoints without authentication
+            if ("GET".equals(method) && (path.matches(".*/api/catalog(/.*)?") || path.matches(".*/[^/]*/api/catalog(/.*)?") )) {
+                logger.debug("Path {} is GET catalog endpoint, skipping authentication", path);
+                return ServerWebExchangeMatcher.MatchResult.notMatch();
+            }
 
             // Check if path matches any public path
             for (String publicPath : PUBLIC_PATHS) {
-                String pattern = publicPath.replace("**", ".*");
+                // Convert Ant-style pattern to Regex
+                String pattern = publicPath
+                        .replace(".", "\\.")
+                        .replace("/**", "(/.*)?")
+                        .replace("**", ".*")
+                        .replace("*", "[^/]*");
                 try {
                     if (path.matches(pattern)) {
                         logger.debug("Path {} matches public pattern {}, skipping authentication", path, pattern);
@@ -57,8 +66,8 @@ public class JwtAuthenticationWebFilterConfig {
                     logger.warn("Error checking regex pattern {}: {}", pattern, e.getMessage());
                 }
             }
-            
-            logger.debug("Path {} requires authentication", path);
+
+            logger.debug("Path {} {} requires authentication", method, path);
             return ServerWebExchangeMatcher.MatchResult.match();
         });
 
@@ -72,17 +81,13 @@ public class JwtAuthenticationWebFilterConfig {
                         String token = authHeader.substring(7);
                         logger.debug("Found Bearer token in Authorization header");
                         return Mono.just(
-                                new UsernamePasswordAuthenticationToken(null, token)
-                        );
+                                new UsernamePasswordAuthenticationToken(null, token));
                     }
                     logger.debug("No Authorization header found");
                     // Return empty Mono for requests without Authorization header
                     return Mono.empty();
-                }
-        );
+                });
 
         return filter;
     }
 }
-
-

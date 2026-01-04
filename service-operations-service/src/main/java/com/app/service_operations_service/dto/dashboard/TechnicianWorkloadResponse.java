@@ -9,6 +9,5 @@ public class TechnicianWorkloadResponse {
 
     private Long totalTechnicians;
     private Long availableTechnicians;
-    private Double averageRating;
     private Double averageWorkloadRatio;
 }

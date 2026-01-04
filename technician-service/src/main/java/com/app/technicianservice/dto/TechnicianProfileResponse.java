@@ -17,7 +17,6 @@ public class TechnicianProfileResponse {
     private String phone;
     private String specialization;
     private Integer experience;
-    private Double rating;
     private List<String> skills;
     private String location;
     private Boolean available;
@@ -33,7 +32,6 @@ public class TechnicianProfileResponse {
         this.phone = profile.getPhone();
         this.specialization = profile.getSpecialization();
         this.experience = profile.getExperience();
-        this.rating = profile.getRating();
         this.skills = profile.getSkills();
         this.location = profile.getLocation();
         this.available = profile.getAvailable();

@@ -11,7 +11,6 @@ public class TechnicianSummaryResponse {
     private String id;
     private String name;
     private String specialization;
-    private Double rating;
     private Boolean available;
     private Integer currentWorkload;
     private Integer maxWorkload;

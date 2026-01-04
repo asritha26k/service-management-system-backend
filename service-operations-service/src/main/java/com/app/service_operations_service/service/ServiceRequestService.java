@@ -275,8 +275,33 @@ public class ServiceRequestService {
         if (newStatus == RequestStatus.COMPLETED) {
             request.setCompletedAt(Instant.now());
         }
+        ServiceRequest saved = requestRepository.save(request);
 
-        return toResponse(requestRepository.save(request));
+        if (newStatus == RequestStatus.COMPLETED) {
+            decrementWorkloadIfAssigned(saved.getTechnicianId());
+
+            try {
+                billingService.generateInvoiceForCompletedRequest(saved.getId());
+            } catch (Exception ex) {
+                log.error("Invoice generation failed for request {}", saved.getId(), ex);
+            }
+        }
+
+        return toResponse(saved);
+    }
+
+    private void decrementWorkloadIfAssigned(String technicianId) {
+        if (technicianId == null) {
+            return;
+        }
+        try {
+            TechnicianProfileResponse technician = technicianClient.getTechnician(technicianId);
+            if (technician != null && technician.getCurrentWorkload() != null && technician.getCurrentWorkload() > 0) {
+                technicianClient.updateWorkload(technicianId, technician.getCurrentWorkload() - 1);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to decrement workload for technician {}", technicianId, ex);
+        }
     }
 
     private void validateStatusTransition(RequestStatus from, RequestStatus to, ServiceRequest request) {
@@ -418,10 +443,7 @@ public class ServiceRequestService {
         ServiceRequest saved = requestRepository.save(request);
 
         // Decrement technician's workload after completion
-        TechnicianProfileResponse technician = technicianClient.getTechnician(technicianId);
-        if (technician != null && technician.getCurrentWorkload() != null && technician.getCurrentWorkload() > 0) {
-            technicianClient.updateWorkload(technicianId, technician.getCurrentWorkload() - 1);
-        }
+        decrementWorkloadIfAssigned(technicianId);
 
         try {
             billingService.generateInvoiceForCompletedRequest(saved.getId());
@@ -571,6 +593,7 @@ public class ServiceRequestService {
         response.setRequestNumber(request.getRequestNumber());
         response.setCustomerId(request.getCustomerId());
         response.setServiceId(request.getServiceId());
+        response.setServiceName(resolveServiceName(request.getServiceId()));
         response.setPriority(request.getPriority());
         response.setStatus(request.getStatus());
         response.setPreferredDate(request.getPreferredDate());
@@ -580,7 +603,30 @@ public class ServiceRequestService {
         response.setAcceptedAt(request.getAcceptedAt());
         response.setCompletedAt(request.getCompletedAt());
         response.setCreatedAt(request.getCreatedAt());
+
+        if (request.getTechnicianId() != null) {
+            try {
+                TechnicianProfileResponse tech = technicianClient.getTechnician(request.getTechnicianId());
+                if (tech != null) {
+                    response.setTechnicianName(tech.getName());
+                    response.setTechnicianPhone(tech.getPhone());
+                }
+            } catch (Exception ex) {
+                log.warn("Failed to fetch technician name for request {}: {}", request.getId(), ex.getMessage());
+            }
+        }
+
         return response;
+    }
+
+    private String resolveServiceName(String serviceId) {
+        if (serviceId == null) {
+            return null;
+        }
+
+        return itemRepository.findById(serviceId)
+                .map(item -> item.getName())
+                .orElse(null);
     }
 
     private ServiceRequestWithTechnicianResponse toResponseWithTechnicianDetails(ServiceRequest request) {
@@ -590,6 +636,7 @@ public class ServiceRequestService {
         response.setRequestNumber(request.getRequestNumber());
         response.setCustomerId(request.getCustomerId());
         response.setServiceId(request.getServiceId());
+        response.setServiceName(resolveServiceName(request.getServiceId()));
         response.setPriority(request.getPriority());
         response.setStatus(request.getStatus());
         response.setPreferredDate(request.getPreferredDate());
@@ -608,6 +655,7 @@ public class ServiceRequestService {
                     ServiceRequestWithTechnicianResponse.TechnicianDetails d = new ServiceRequestWithTechnicianResponse.TechnicianDetails();
                     d.setId(tech.getId());
                     d.setEmail(tech.getEmail());
+                    d.setName(tech.getName());
                     d.setPhone(tech.getPhone());
                     d.setSpecialization(tech.getSpecialization());
                     d.setExperience(tech.getExperience());
@@ -629,6 +677,7 @@ public class ServiceRequestService {
         response.setRequestNumber(request.getRequestNumber());
         response.setCustomerId(request.getCustomerId());
         response.setServiceId(request.getServiceId());
+        response.setServiceName(resolveServiceName(request.getServiceId()));
         response.setPriority(request.getPriority());
         response.setStatus(request.getStatus());
         response.setPreferredDate(request.getPreferredDate());

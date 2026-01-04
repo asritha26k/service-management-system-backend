@@ -39,6 +39,9 @@ class DashboardServiceTest {
     private ServiceCategoryRepository serviceCategoryRepository;
 
     @Mock
+    private com.app.service_operations_service.repository.ServiceItemRepository serviceItemRepository;
+
+    @Mock
     private TechnicianClient technicianClient;
 
     @InjectMocks
@@ -131,12 +134,14 @@ class DashboardServiceTest {
     void getCategoryStatistics_ShouldReturnCategoryStats() {
         List<ServiceRequest> requests = Arrays.asList(serviceRequest);
         when(serviceRequestRepository.findAll()).thenReturn(requests);
+        when(serviceItemRepository.findAll()).thenReturn(List.of());
+        when(serviceCategoryRepository.findAll()).thenReturn(List.of());
         when(serviceCategoryRepository.count()).thenReturn(5L);
 
         CategoryStatsResponse response = dashboardService.getCategoryStatistics();
 
         assertNotNull(response);
-        assertNotNull(response.getServiceStatistics());
+        assertNotNull(response.getCategories());
         assertEquals(5L, response.getTotalCategories());
         verify(serviceRequestRepository, times(1)).findAll();
         verify(serviceCategoryRepository, times(1)).count();

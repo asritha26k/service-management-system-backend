@@ -152,7 +152,6 @@ class AuthControllerTest {
         request.setName("Manager Name");
         request.setRole("MANAGER");
         request.setPhone("1234567890");
-        request.setDepartment("Operations");
 
         when(securityUtil.extractUserIdFromContext()).thenReturn("admin-1");
         when(authService.registerManager(any(RegisterManagerRequest.class), eq("admin-1")))

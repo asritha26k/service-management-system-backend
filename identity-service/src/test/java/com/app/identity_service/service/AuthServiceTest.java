@@ -116,12 +116,11 @@ class AuthServiceTest {
         request.setEmail("manager@example.com");
         request.setName("Manager Name");
         request.setPhone("1234567890");
-        request.setDepartment("Operations");
 
         when(userAuthRepository.existsByEmail("manager@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userAuthRepository.save(any(UserAuth.class))).thenReturn(userAuth);
-        when(userProfileService.createProfile(anyString(), any(UpdateUserProfileRequest.class), anyString()))
+        when(userProfileService.createProfile(anyString(), any(UpdateUserProfileRequest.class), isNull()))
                 .thenReturn(UserProfileResponse.builder().userId("user-1").build());
         doNothing().when(notificationServiceClient).sendCredentialsEmail(any());
 

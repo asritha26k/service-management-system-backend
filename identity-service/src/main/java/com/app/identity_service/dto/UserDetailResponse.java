@@ -1,17 +1,14 @@
 package com.app.identity_service.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// User Me Response DTO
-// Combines user auth and profile information
+// Enhanced User Response DTO with profile information
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class UserMeResponse {
+public class UserDetailResponse {
 
 	private String id;
 	private String email;
@@ -19,6 +16,8 @@ public class UserMeResponse {
 	private Boolean isActive;
 	private Boolean isEmailVerified;
 	private Boolean forcePasswordChange;
+	
+	// Profile information
 	private String name;
 	private String phone;
 	private String address;
@@ -26,4 +25,3 @@ public class UserMeResponse {
 	private String state;
 	private String pincode;
 }
-

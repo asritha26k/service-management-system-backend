@@ -119,7 +119,7 @@ class TechnicianControllerTest {
     @Test
     void getAvailable_ShouldReturnOk() throws Exception {
         TechnicianSummaryResponse summary = new TechnicianSummaryResponse(
-                "profile-1", "John Doe", "Plumbing", 4.5, true, 2, 5
+                "profile-1", "John Doe", "Plumbing", true, 2, 5
         );
         List<TechnicianSummaryResponse> summaries = Arrays.asList(summary);
         when(technicianService.getAvailable()).thenReturn(summaries);
@@ -135,7 +135,6 @@ class TechnicianControllerTest {
         StatsResponse stats = new StatsResponse();
         stats.setTotalTechnicians(10);
         stats.setAvailableTechnicians(5);
-        stats.setAverageRating(4.5);
         stats.setAverageWorkloadRatio(60.0);
 
         when(technicianService.getStats()).thenReturn(stats);
@@ -280,59 +279,6 @@ class TechnicianControllerTest {
     }
 
     @Test
-    void submitRating_ShouldReturnCreated() throws Exception {
-        SubmitRatingRequest request = new SubmitRatingRequest();
-        request.setRating(5);
-        request.setComment("Excellent service");
-
-        TechnicianRatingResponse ratingResponse = new TechnicianRatingResponse();
-        ratingResponse.setId("rating-1");
-        ratingResponse.setRating(5);
-
-        when(technicianService.submitRating(eq("customer-1"), eq("profile-1"), any(SubmitRatingRequest.class)))
-                .thenReturn(ratingResponse);
-
-        mockMvc.perform(post("/api/technicians/profile-1/ratings")
-                        .header("X-User-Id", "customer-1")
-                        .header("X-User-Role", "CUSTOMER")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("rating-1"))
-                .andExpect(jsonPath("$.message").value("Rating submitted successfully"));
-    }
-
-    @Test
-    void getTechnicianRatings_ShouldReturnOk() throws Exception {
-        TechnicianRatingResponse rating = new TechnicianRatingResponse();
-        rating.setId("rating-1");
-        rating.setRating(5);
-        List<TechnicianRatingResponse> ratings = Arrays.asList(rating);
-
-        when(technicianService.getTechnicianRatings("profile-1")).thenReturn(ratings);
-
-        mockMvc.perform(get("/api/technicians/profile-1/ratings"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("rating-1"));
-    }
-
-    @Test
-    void getMyRating_ShouldReturnOk() throws Exception {
-        TechnicianRatingResponse rating = new TechnicianRatingResponse();
-        rating.setId("rating-1");
-        rating.setRating(5);
-
-        when(technicianService.getCustomerRating(eq("profile-1"), eq("customer-1")))
-                .thenReturn(rating);
-
-        mockMvc.perform(get("/api/technicians/profile-1/ratings/my-rating")
-                        .header("X-User-Id", "customer-1")
-                        .header("X-User-Role", "CUSTOMER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("rating-1"));
-    }
-
-    @Test
     void getWorkload_ShouldReturnOk() throws Exception {
         WorkloadResponse workload = new WorkloadResponse("profile-1", true, 2, 5);
         when(technicianService.getWorkload("profile-1")).thenReturn(workload);
@@ -367,19 +313,6 @@ class TechnicianControllerTest {
                         .header("X-User-Role", "TECHNICIAN")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void updateRating_ShouldReturnNoContent() throws Exception {
-        doNothing().when(technicianService).updateRating(
-                any(RequestUser.class), eq("profile-1"), eq(4.5));
-
-        mockMvc.perform(put("/api/technicians/profile-1/rating")
-                        .header("X-User-Id", "user-1")
-                        .header("X-User-Role", "TECHNICIAN")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("4.5"))
                 .andExpect(status().isNoContent());
     }
 

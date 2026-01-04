@@ -10,18 +10,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.technicianservice.dto.AvailabilityUpdateRequest;
 import com.app.technicianservice.dto.CreateProfileRequest;
 import com.app.technicianservice.dto.StatsResponse;
-import com.app.technicianservice.dto.SubmitRatingRequest;
 import com.app.technicianservice.dto.TechnicianProfileResponse;
-import com.app.technicianservice.dto.TechnicianRatingResponse;
 import com.app.technicianservice.dto.TechnicianSummaryResponse;
 import com.app.technicianservice.dto.WorkloadResponse;
 import com.app.technicianservice.entity.TechnicianProfile;
-import com.app.technicianservice.entity.TechnicianRating;
 import com.app.technicianservice.exception.BadRequestException;
 import com.app.technicianservice.exception.NotFoundException;
 import com.app.technicianservice.feign.IdentityServiceClient;
 import com.app.technicianservice.repository.TechnicianProfileRepository;
-import com.app.technicianservice.repository.TechnicianRatingRepository;
 import com.app.technicianservice.security.RequestUser;
 import com.app.technicianservice.util.UserContext;
 
@@ -30,13 +26,11 @@ import com.app.technicianservice.util.UserContext;
 public class TechnicianService {
 
     private final TechnicianProfileRepository repository;
-    private final TechnicianRatingRepository ratingRepository;
     private final IdentityServiceClient identityServiceClient;
 
-    public TechnicianService(TechnicianProfileRepository repository, TechnicianRatingRepository ratingRepository,
+    public TechnicianService(TechnicianProfileRepository repository,
             IdentityServiceClient identityServiceClient) {
         this.repository = repository;
-        this.ratingRepository = ratingRepository;
         this.identityServiceClient = identityServiceClient;
     }
 
@@ -56,16 +50,11 @@ public class TechnicianService {
                     return locationMatch && skillMatch;
                 })
                 .sorted((t1, t2) -> {
-                    // Sort by workload (asc), then rating (desc)
+                    // Sort by workload (asc)
                     int workloadCompare = Integer.compare(
                             t1.getCurrentWorkload() != null ? t1.getCurrentWorkload() : 0,
                             t2.getCurrentWorkload() != null ? t2.getCurrentWorkload() : 0);
-                    if (workloadCompare != 0)
-                        return workloadCompare;
-
-                    Double r1 = t1.getRating() != null ? t1.getRating() : 0.0;
-                    Double r2 = t2.getRating() != null ? t2.getRating() : 0.0;
-                    return r2.compareTo(r1);
+                    return workloadCompare;
                 })
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -193,11 +182,6 @@ public class TechnicianService {
         r.setAvailableTechnicians(all.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getAvailable()) && p.getCurrentWorkload() < p.getMaxWorkload())
                 .count());
-        r.setAverageRating(
-                all.stream().map(TechnicianProfile::getRating)
-                        .filter(Objects::nonNull)
-                        .mapToDouble(Double::doubleValue)
-                        .average().orElse(0));
 
         // Calculate average workload ratio: (currentWorkload / maxWorkload) * 100
         double averageWorkloadRatio = all.stream()
@@ -208,106 +192,6 @@ public class TechnicianService {
         r.setAverageWorkloadRatio(averageWorkloadRatio);
 
         return r;
-    }
-
-    public void updateRating(RequestUser user, String id, Double rating) {
-        UserContext.requireAuthenticated(user.userId());
-        TechnicianProfile p = fetch(id);
-        p.setRating(rating);
-        repository.save(p);
-    }
-
-    // ============ Rating System ============
-
-    // Submit a rating for a technician
-    // @param customerId ID of the customer submitting the rating
-    // @param technicianId ID of the technician being rated (profile ID or user ID)
-    // @param request Rating request with rating (1-5) and optional comment
-    // @return The saved rating
-    public TechnicianRatingResponse submitRating(String customerId, String technicianId, SubmitRatingRequest request) {
-        // Validate that a technician cannot rate themselves
-        if (customerId.equals(technicianId)) {
-            throw new BadRequestException("Technicians cannot rate themselves");
-        }
-
-        // Fetch technician profile - try by profile ID first, then by user ID
-        TechnicianProfile technician = repository.findById(technicianId)
-                .orElseGet(() -> repository.findByUserId(technicianId)
-                        .orElseThrow(() -> new NotFoundException("Technician not found with ID: " + technicianId)));
-
-        // Check if customer already rated this technician
-        var existingRating = ratingRepository.findByTechnicianIdAndCustomerId(technician.getId(), customerId);
-        TechnicianRating rating;
-
-        if (existingRating.isPresent()) {
-            // Update existing rating
-            rating = existingRating.get();
-            rating.setRating(request.getRating());
-            rating.setComment(request.getComment());
-        } else {
-            // Create new rating
-            rating = new TechnicianRating(technician.getId(), customerId, request.getRating(), request.getComment());
-        }
-
-        rating = ratingRepository.save(rating);
-
-        // Update technician's average rating
-        updateTechnicianAverageRating(technician.getId());
-
-        return new TechnicianRatingResponse(rating);
-    }
-
-    // Get all ratings for a technician
-    // @param technicianId ID of the technician (profile ID or user ID)
-    // @return List of ratings
-    public List<TechnicianRatingResponse> getTechnicianRatings(String technicianId) {
-        // Fetch technician profile - try by profile ID first, then by user ID
-        TechnicianProfile technician = repository.findById(technicianId)
-                .orElseGet(() -> repository.findByUserId(technicianId)
-                        .orElseThrow(() -> new NotFoundException("Technician not found with ID: " + technicianId)));
-
-        return ratingRepository.findByTechnicianId(technician.getId())
-                .stream()
-                .map(TechnicianRatingResponse::new)
-                .toList();
-    }
-
-    // Get a specific rating by a customer for a technician
-    // @param technicianId ID of the technician (profile ID or user ID)
-    // @param customerId ID of the customer
-    // @return The rating if exists
-    public TechnicianRatingResponse getCustomerRating(String technicianId, String customerId) {
-        // Validate that a technician cannot get their own rating
-        if (customerId.equals(technicianId)) {
-            throw new BadRequestException("Technicians cannot view their own ratings");
-        }
-
-        // Fetch technician profile - try by profile ID first, then by user ID
-        TechnicianProfile technician = repository.findById(technicianId)
-                .orElseGet(() -> repository.findByUserId(technicianId)
-                        .orElseThrow(() -> new NotFoundException("Technician not found with ID: " + technicianId)));
-
-        return ratingRepository.findByTechnicianIdAndCustomerId(technician.getId(), customerId)
-                .map(TechnicianRatingResponse::new)
-                .orElseThrow(() -> new NotFoundException("Rating not found"));
-    }
-
-    // Update average rating for a technician based on all submitted ratings
-    private void updateTechnicianAverageRating(String technicianId) {
-        List<TechnicianRating> ratings = ratingRepository.findByTechnicianId(technicianId);
-
-        if (ratings.isEmpty()) {
-            return;
-        }
-
-        Double averageRating = ratings.stream()
-                .mapToDouble(r -> r.getRating())
-                .average()
-                .orElse(0.0);
-
-        TechnicianProfile technician = fetch(technicianId);
-        technician.setRating(averageRating);
-        repository.save(technician);
     }
 
     public WorkloadResponse updateWorkload(String id, Integer currentWorkload) {
@@ -347,7 +231,6 @@ public class TechnicianService {
                 p.getId(),
                 p.getName(),
                 p.getSpecialization(),
-                p.getRating(),
                 p.getAvailable(),
                 p.getCurrentWorkload(),
                 p.getMaxWorkload());

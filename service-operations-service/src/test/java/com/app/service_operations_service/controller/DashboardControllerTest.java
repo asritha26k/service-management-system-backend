@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.when;
@@ -61,16 +62,45 @@ class DashboardControllerTest {
         workloadResponse = new TechnicianWorkloadResponse();
         workloadResponse.setTotalTechnicians(10L);
         workloadResponse.setAvailableTechnicians(7L);
-        workloadResponse.setAverageRating(4.5);
         workloadResponse.setAverageWorkloadRatio(0.75);
 
         resolutionTimeResponse = new ResolutionTimeResponse(24.5);
 
-        categoryStatsResponse = new CategoryStatsResponse();
-        Map<String, Long> serviceStats = new HashMap<>();
-        serviceStats.put("service-1", 15L);
-        categoryStatsResponse.setServiceStatistics(serviceStats);
-        categoryStatsResponse.setTotalCategories(5L);
+        categoryStatsResponse = CategoryStatsResponse.builder()
+                .totalCategories(3L)
+                .totalRequests(15L)
+                .categories(List.of(
+                        CategoryStatistics.builder()
+                                .categoryId("cat-1")
+                                .categoryName("HVAC Services")
+                                .totalRequests(10L)
+                                .services(List.of(
+                                        CategoryStatistics.ServiceInfo.builder()
+                                                .serviceId("service-1")
+                                                .serviceName("AC Repair")
+                                                .requestCount(6L)
+                                                .build(),
+                                        CategoryStatistics.ServiceInfo.builder()
+                                                .serviceId("service-2")
+                                                .serviceName("AC Installation")
+                                                .requestCount(4L)
+                                                .build()
+                                ))
+                                .build(),
+                        CategoryStatistics.builder()
+                                .categoryId("cat-2")
+                                .categoryName("Plumbing Services")
+                                .totalRequests(5L)
+                                .services(List.of(
+                                        CategoryStatistics.ServiceInfo.builder()
+                                                .serviceId("service-3")
+                                                .serviceName("Pipe Repair")
+                                                .requestCount(5L)
+                                                .build()
+                                ))
+                                .build()
+                ))
+                .build();
     }
 
     @Test
@@ -93,7 +123,6 @@ class DashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalTechnicians").value(10))
                 .andExpect(jsonPath("$.availableTechnicians").value(7))
-                .andExpect(jsonPath("$.averageRating").value(4.5))
                 .andExpect(jsonPath("$.averageWorkloadRatio").value(0.75));
     }
 
@@ -112,8 +141,12 @@ class DashboardControllerTest {
 
         mockMvc.perform(get("/api/dashboard/category-stats"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalCategories").value(5))
-                .andExpect(jsonPath("$.serviceStatistics.service-1").value(15));
+                .andExpect(jsonPath("$.totalCategories").value(3))
+                .andExpect(jsonPath("$.totalRequests").value(15))
+                .andExpect(jsonPath("$.categories[0].categoryName").value("HVAC Services"))
+                .andExpect(jsonPath("$.categories[0].totalRequests").value(10))
+                .andExpect(jsonPath("$.categories[0].services[0].serviceName").value("AC Repair"))
+                .andExpect(jsonPath("$.categories[0].services[0].requestCount").value(6));
     }
 }
 

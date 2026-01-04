@@ -48,7 +48,6 @@ public class TechnicianProfile {
 
     private String specialization;
     private Integer experience;
-    private Double rating;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(nullable = false)

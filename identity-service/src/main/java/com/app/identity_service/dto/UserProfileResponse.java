@@ -19,5 +19,4 @@ public class UserProfileResponse {
     private String city;
     private String state;
     private String pincode;
-    private String department;
 }

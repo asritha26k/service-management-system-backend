@@ -44,9 +44,6 @@ public class UserProfile {
 	@Column(length = 10)
 	private String pincode;
 
-	@Column(length = 100)
-	private String department;
-
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 

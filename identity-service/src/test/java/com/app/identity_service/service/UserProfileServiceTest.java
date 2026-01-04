@@ -78,15 +78,13 @@ class UserProfileServiceTest {
     }
 
     @Test
-    void createProfile_ShouldCreateProfileWithDepartment() {
-        profileRequest.setDepartment("Operations");
+    void createProfile_ShouldCreateProfileWithThirdParameter() {
         when(userProfileRepository.existsByUserId("user-1")).thenReturn(false);
         when(userProfileRepository.save(any(UserProfile.class))).thenReturn(userProfile);
 
-        UserProfileResponse response = userProfileService.createProfile("user-1", profileRequest, "Operations");
+        UserProfileResponse response = userProfileService.createProfile("user-1", profileRequest, null);
 
         assertNotNull(response);
-        assertEquals("Operations", profileRequest.getDepartment());
         verify(userProfileRepository, times(1)).save(any(UserProfile.class));
     }
 

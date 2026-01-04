@@ -24,13 +24,12 @@ public class UserProfileService {
         return createProfileInternal(userId, request);
     }
 
-    // Create user profile with department (staff)
+    // Create user profile (alternative signature for backwards compatibility)
     public UserProfileResponse createProfile(
             String userId,
             UpdateUserProfileRequest request,
-            String department
+            String unusedParam
     ) {
-        request.setDepartment(department);
         return createProfileInternal(userId, request);
     }
 
@@ -49,7 +48,6 @@ public class UserProfileService {
         profile.setCity(request.getCity());
         profile.setState(request.getState());
         profile.setPincode(request.getPincode());
-        profile.setDepartment(request.getDepartment());
 
         return mapToUserProfileResponse(
                 userProfileRepository.save(profile)
@@ -89,7 +87,6 @@ public class UserProfileService {
         if (request.getCity() != null) profile.setCity(request.getCity());
         if (request.getState() != null) profile.setState(request.getState());
         if (request.getPincode() != null) profile.setPincode(request.getPincode());
-        if (request.getDepartment() != null) profile.setDepartment(request.getDepartment());
 
         return mapToUserProfileResponse(
                 userProfileRepository.save(profile)
@@ -107,7 +104,6 @@ public class UserProfileService {
                 .city(profile.getCity())
                 .state(profile.getState())
                 .pincode(profile.getPincode())
-                .department(profile.getDepartment())
                 .build();
     }
 }

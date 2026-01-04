@@ -14,6 +14,7 @@ public class TechnicianProfileResponse {
     private String id;
     private String userId;
     private String email;
+    private String name;
     private String phone;
     private String specialization;
     private Integer experience;

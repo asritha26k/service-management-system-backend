@@ -61,11 +61,13 @@ services:
       - "3307:3306"
     volumes:
       - mysql-identity-data:/var/lib/mysql
+      - ./identity-service/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
     networks:
       - app-net
 
@@ -81,11 +83,13 @@ services:
       - "3308:3306"
     volumes:
       - mysql-notification-data:/var/lib/mysql
+      - ./notification-service/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
     networks:
       - app-net
 
@@ -101,11 +105,13 @@ services:
       - "3309:3306"
     volumes:
       - mysql-technician-data:/var/lib/mysql
+      - ./technician-service/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
     networks:
       - app-net
 

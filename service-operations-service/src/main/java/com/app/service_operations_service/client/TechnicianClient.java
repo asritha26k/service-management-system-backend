@@ -25,10 +25,6 @@ public interface TechnicianClient {
     @CircuitBreaker(name = "technician-service", fallbackMethod = "getTechnicianByUserIdFallback")
     TechnicianProfileResponse getTechnicianByUserId(@PathVariable("userId") String userId);
 
-    @PutMapping("/{id}/rating")
-    @CircuitBreaker(name = "technician-service", fallbackMethod = "updateRatingFallback")
-    void updateRating(@PathVariable("id") String id, @RequestBody Double rating);
-
     @PutMapping("/{id}/workload")
     @CircuitBreaker(name = "technician-service", fallbackMethod = "updateWorkloadFallback")
     void updateWorkload(@PathVariable("id") String id, @RequestParam("current") Integer currentWorkload);

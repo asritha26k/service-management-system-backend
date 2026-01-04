@@ -6,7 +6,6 @@ import com.app.identity_service.entity.UserProfile;
 import com.app.identity_service.exception.DuplicateProfileException;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.repository.UserProfileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,28 +15,16 @@ public class UserProfileService {
 
     private static final String RESOURCE_USER_PROFILE = "UserProfile";
 
-    @Autowired
-    private UserProfileRepository userProfileRepository;
+    private final UserProfileRepository userProfileRepository;
 
-    // Create user profile (customer / default)
-    public UserProfileResponse createProfile(String userId, UpdateUserProfileRequest request) {
-        return createProfileInternal(userId, request);
+    public UserProfileService(UserProfileRepository userProfileRepository) {
+        this.userProfileRepository = userProfileRepository;
     }
 
-    // Create user profile (alternative signature for backwards compatibility)
     public UserProfileResponse createProfile(
-            String userId,
-            UpdateUserProfileRequest request,
-            String unusedParam
-    ) {
-        return createProfileInternal(userId, request);
-    }
-
-    private UserProfileResponse createProfileInternal(
             String userId,
             UpdateUserProfileRequest request
     ) {
-        // Check if profile already exists for this user
         if (userProfileRepository.existsByUserId(userId)) {
             throw new DuplicateProfileException(userId);
         }
@@ -54,7 +41,6 @@ public class UserProfileService {
         );
     }
 
-    // Get user profile by user ID
     public UserProfileResponse getProfileByUserId(String userId) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() ->
@@ -64,7 +50,6 @@ public class UserProfileService {
         return mapToUserProfileResponse(profile);
     }
 
-    // Get user profile by profile ID
     public UserProfileResponse getProfileById(String profileId) {
         UserProfile profile = userProfileRepository.findById(profileId)
                 .orElseThrow(() ->
@@ -74,8 +59,10 @@ public class UserProfileService {
         return mapToUserProfileResponse(profile);
     }
 
-    // Update user profile
-    public UserProfileResponse updateProfile(String userId, UpdateUserProfileRequest request) {
+    public UserProfileResponse updateProfile(
+            String userId,
+            UpdateUserProfileRequest request
+    ) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -93,7 +80,6 @@ public class UserProfileService {
         );
     }
 
-    // Map UserProfile entity to response DTO
     private UserProfileResponse mapToUserProfileResponse(UserProfile profile) {
         return UserProfileResponse.builder()
                 .id(profile.getId())

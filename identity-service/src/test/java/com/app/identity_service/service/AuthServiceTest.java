@@ -120,7 +120,7 @@ class AuthServiceTest {
         when(userAuthRepository.existsByEmail("manager@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userAuthRepository.save(any(UserAuth.class))).thenReturn(userAuth);
-        when(userProfileService.createProfile(anyString(), any(UpdateUserProfileRequest.class), isNull()))
+        when(userProfileService.createProfile(anyString(), any(UpdateUserProfileRequest.class)))
                 .thenReturn(UserProfileResponse.builder().userId("user-1").build());
         doNothing().when(notificationServiceClient).sendCredentialsEmail(any());
 

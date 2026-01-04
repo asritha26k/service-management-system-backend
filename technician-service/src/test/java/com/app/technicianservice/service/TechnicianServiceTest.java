@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -97,8 +96,7 @@ class TechnicianServiceTest {
         createRequest.setName("");
         when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.createProfile(testUser, createRequest));
+        assertThrows(BadRequestException.class, () -> technicianService.createProfile(testUser, createRequest));
     }
 
     @Test
@@ -116,8 +114,7 @@ class TechnicianServiceTest {
     void getById_ShouldThrowNotFoundException_WhenNotFound() {
         when(repository.findById("invalid-id")).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> 
-            technicianService.getById("invalid-id"));
+        assertThrows(NotFoundException.class, () -> technicianService.getById("invalid-id"));
     }
 
     @Test
@@ -135,8 +132,7 @@ class TechnicianServiceTest {
     void getByUserId_ShouldThrowNotFoundException_WhenNotFound() {
         when(repository.findByUserId("invalid-user")).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> 
-            technicianService.getByUserId("invalid-user"));
+        assertThrows(NotFoundException.class, () -> technicianService.getByUserId("invalid-user"));
     }
 
     @Test
@@ -160,8 +156,7 @@ class TechnicianServiceTest {
         fullWorkloadProfile.setMaxWorkload(5);
 
         when(repository.findAll()).thenReturn(Arrays.asList(
-            availableProfile, unavailableProfile, fullWorkloadProfile
-        ));
+                availableProfile, unavailableProfile, fullWorkloadProfile));
 
         List<TechnicianSummaryResponse> responses = technicianService.getAvailable();
 
@@ -230,7 +225,7 @@ class TechnicianServiceTest {
         when(repository.save(any(TechnicianProfile.class))).thenReturn(profile);
 
         TechnicianProfileResponse response = technicianService.updateAvailability(
-            testUser, "profile-1", request);
+                testUser, "profile-1", request);
 
         assertNotNull(response);
         verify(repository, times(1)).findById("profile-1");
@@ -246,7 +241,7 @@ class TechnicianServiceTest {
         when(repository.save(any(TechnicianProfile.class))).thenReturn(profile);
 
         TechnicianProfileResponse response = technicianService.updateMyAvailability(
-            testUser, request);
+                testUser, request);
 
         assertNotNull(response);
         verify(repository, times(1)).findByUserId("user-1");
@@ -262,8 +257,7 @@ class TechnicianServiceTest {
 
         when(repository.findByUserId("user-1")).thenReturn(Optional.of(profile));
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.updateMyAvailability(testUser, request));
+        assertThrows(BadRequestException.class, () -> technicianService.updateMyAvailability(testUser, request));
     }
 
     @Test
@@ -282,20 +276,12 @@ class TechnicianServiceTest {
         verify(repository, times(1)).save(any(TechnicianProfile.class));
     }
 
-    @Test
-    void updateWorkload_ShouldThrowBadRequest_WhenNegative() {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints = { -1, 10 })
+    void updateWorkload_ShouldThrowBadRequest_WhenWorkloadInvalid(int currentWorkload) {
         when(repository.findById("profile-1")).thenReturn(Optional.of(profile));
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.updateWorkload("profile-1", -1));
-    }
-
-    @Test
-    void updateWorkload_ShouldThrowBadRequest_WhenExceedsMax() {
-        when(repository.findById("profile-1")).thenReturn(Optional.of(profile));
-
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.updateWorkload("profile-1", 10));
+        assertThrows(BadRequestException.class, () -> technicianService.updateWorkload("profile-1", currentWorkload));
     }
 
     // Tests for findSuggestions method and its lambda expressions
@@ -417,7 +403,8 @@ class TechnicianServiceTest {
 
         when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2, tech3));
 
-        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York", Arrays.asList("Electrical"));
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York",
+                Arrays.asList("Electrical"));
 
         assertNotNull(results);
         assertEquals(1, results.size());
@@ -446,7 +433,8 @@ class TechnicianServiceTest {
 
         when(repository.findByIsAvailableTrue()).thenReturn(Arrays.asList(tech1, tech2));
 
-        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York", Arrays.asList("Electrical"));
+        List<TechnicianProfileResponse> results = technicianService.findSuggestions("New York",
+                Arrays.asList("Electrical"));
 
         assertNotNull(results);
         assertEquals(2, results.size());
@@ -580,8 +568,7 @@ class TechnicianServiceTest {
         when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
         when(identityServiceClient.getCurrentUser()).thenReturn(null);
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.createProfile(testUser, requestWithoutEmail));
+        assertThrows(BadRequestException.class, () -> technicianService.createProfile(testUser, requestWithoutEmail));
     }
 
     @Test
@@ -597,8 +584,7 @@ class TechnicianServiceTest {
         when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
         when(identityServiceClient.getCurrentUser()).thenReturn(ResponseEntity.ok(null));
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.createProfile(testUser, requestWithoutEmail));
+        assertThrows(BadRequestException.class, () -> technicianService.createProfile(testUser, requestWithoutEmail));
     }
 
     @Test
@@ -618,19 +604,17 @@ class TechnicianServiceTest {
         when(repository.findByUserId("user-1")).thenReturn(Optional.empty());
         when(identityServiceClient.getCurrentUser()).thenReturn(ResponseEntity.ok(userResponse));
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.createProfile(testUser, requestWithoutEmail));
+        assertThrows(BadRequestException.class, () -> technicianService.createProfile(testUser, requestWithoutEmail));
     }
 
     // Additional tests for getMyWorkload edge cases
     @Test
     void getMyWorkload_ShouldThrowNotFoundException_WhenProfileNotFound() {
         RequestUser newUser = new RequestUser("user-2", "TECHNICIAN");
-        
+
         when(repository.findByUserId("user-2")).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> 
-            technicianService.getMyWorkload(newUser));
+        assertThrows(NotFoundException.class, () -> technicianService.getMyWorkload(newUser));
     }
 
     @Test
@@ -662,15 +646,14 @@ class TechnicianServiceTest {
 
         when(repository.findByUserId("user-2")).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> 
-            technicianService.updateMyAvailability(newUser, request));
+        assertThrows(NotFoundException.class, () -> technicianService.updateMyAvailability(newUser, request));
     }
 
     @Test
     void updateMyAvailability_ShouldAllowAvailableTrue_WhenBelowMaxWorkload() {
         AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
         request.setAvailable(true);
-        
+
         TechnicianProfile testProfile = new TechnicianProfile();
         testProfile.setId("profile-1");
         testProfile.setUserId("user-1");
@@ -691,7 +674,7 @@ class TechnicianServiceTest {
     void updateMyAvailability_ShouldAllowAvailableFalse_WhenAtMaxWorkload() {
         AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
         request.setAvailable(false);
-        
+
         TechnicianProfile testProfile = new TechnicianProfile();
         testProfile.setId("profile-1");
         testProfile.setUserId("user-1");
@@ -712,7 +695,7 @@ class TechnicianServiceTest {
     void updateMyAvailability_ShouldThrowBadRequest_WhenTryingAvailableTrue_AtMaxWorkloadEdgeCase() {
         AvailabilityUpdateRequest request = new AvailabilityUpdateRequest();
         request.setAvailable(true);
-        
+
         TechnicianProfile testProfile = new TechnicianProfile();
         testProfile.setId("profile-1");
         testProfile.setUserId("user-1");
@@ -722,8 +705,6 @@ class TechnicianServiceTest {
 
         when(repository.findByUserId("user-1")).thenReturn(Optional.of(testProfile));
 
-        assertThrows(BadRequestException.class, () -> 
-            technicianService.updateMyAvailability(testUser, request));
+        assertThrows(BadRequestException.class, () -> technicianService.updateMyAvailability(testUser, request));
     }
 }
-

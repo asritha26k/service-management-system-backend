@@ -1,8 +1,6 @@
 package com.app.technicianservice.service;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +21,7 @@ import com.app.technicianservice.util.UserContext;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class TechnicianService {
 
     private final TechnicianProfileRepository repository;
@@ -38,26 +37,33 @@ public class TechnicianService {
         List<TechnicianProfile> availableTechs = repository.findByIsAvailableTrue();
 
         return availableTechs.stream()
-                .filter(tech -> {
-                    boolean locationMatch = location == null || location.isBlank() ||
-                            (tech.getLocation() != null
-                                    && tech.getLocation().toLowerCase().contains(location.toLowerCase()));
-
-                    boolean skillMatch = skills == null || skills.isEmpty() ||
-                            tech.getSkills().stream()
-                                    .anyMatch(s -> skills.stream().anyMatch(reqS -> reqS.equalsIgnoreCase(s)));
-
-                    return locationMatch && skillMatch;
-                })
-                .sorted((t1, t2) -> {
-                    // Sort by workload (asc)
-                    int workloadCompare = Integer.compare(
-                            t1.getCurrentWorkload() != null ? t1.getCurrentWorkload() : 0,
-                            t2.getCurrentWorkload() != null ? t2.getCurrentWorkload() : 0);
-                    return workloadCompare;
-                })
+                .filter(tech -> matchesLocation(location, tech))
+                .filter(tech -> matchesSkills(skills, tech))
+                .sorted(this::compareByWorkload)
                 .map(this::toResponse)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    private boolean matchesLocation(String location, TechnicianProfile tech) {
+        if (location == null || location.isBlank()) {
+            return true;
+        }
+        return tech.getLocation() != null &&
+                tech.getLocation().toLowerCase().contains(location.toLowerCase());
+    }
+
+    private boolean matchesSkills(List<String> skills, TechnicianProfile tech) {
+        if (skills == null || skills.isEmpty()) {
+            return true;
+        }
+        return tech.getSkills().stream()
+                .anyMatch(s -> skills.stream().anyMatch(reqS -> reqS.equalsIgnoreCase(s)));
+    }
+
+    private int compareByWorkload(TechnicianProfile t1, TechnicianProfile t2) {
+        int workload1 = t1.getCurrentWorkload() != null ? t1.getCurrentWorkload() : 0;
+        int workload2 = t2.getCurrentWorkload() != null ? t2.getCurrentWorkload() : 0;
+        return Integer.compare(workload1, workload2);
     }
 
     public TechnicianProfileResponse createProfile(RequestUser user, CreateProfileRequest request) {

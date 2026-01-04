@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 // Login Request DTO
 @Data
@@ -18,8 +19,8 @@ public class LoginRequest {
 	@Size(max = 255, message = "Email must not exceed 255 characters")
 	private String email;
 
+	@ToString.Exclude
 	@NotBlank(message = "Password is required")
 	@Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
 	private String password;
 }
-

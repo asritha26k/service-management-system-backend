@@ -1,6 +1,5 @@
 package com.app.service_operations_service.controller;
 
-import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.dto.billing.*;
 import com.app.service_operations_service.model.enums.PaymentStatus;
 import com.app.service_operations_service.service.BillingService;
@@ -145,20 +144,7 @@ class BillingControllerTest {
                 .andExpect(jsonPath("$.message").value("Invoice paid successfully"));
     }
 
-//    @Test
-//    void updatePayment_ShouldReturnNoContent() throws Exception {
-//        PaymentUpdateRequest request = new PaymentUpdateRequest();
-//        request.setPaymentStatus(PaymentStatus.PAID);
-//        request.setPaymentMethod("Credit Card");
-//
-//        when(billingService.updatePayment(eq("invoice-1"), any(PaymentUpdateRequest.class)))
-//                .thenReturn(invoiceResponse);
-//
-//        mockMvc.perform(put("/api/billing/invoices/invoice-1/payment")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isNoContent());
-//    }
+
 
     @Test
     void revenueReport_ShouldReturnOk() throws Exception {

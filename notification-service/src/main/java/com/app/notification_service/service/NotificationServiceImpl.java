@@ -28,7 +28,8 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationEventPublisher eventPublisher;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository, NotificationEventPublisher eventPublisher) {
+    public NotificationServiceImpl(NotificationRepository notificationRepository,
+            NotificationEventPublisher eventPublisher) {
         this.notificationRepository = notificationRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -40,16 +41,16 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public NotificationResponse sendNotification(NotificationRequest request) {
-        log.info("Processing notification request for userId: {}, type: {}", request.getUserId(), request.getType());
-        
+        log.info("Processing notification request");
+
         // Validate email requirement for EMAIL type notifications
-        if (request.getType() == NotificationType.EMAIL && 
-            (request.getRecipientEmail() == null || request.getRecipientEmail().isBlank())) {
+        if (request.getType() == NotificationType.EMAIL &&
+                (request.getRecipientEmail() == null || request.getRecipientEmail().isBlank())) {
             log.warn("EMAIL notification requires recipient email but none provided");
             throw new BadRequestException("Recipient email is required for EMAIL type notifications");
         }
 
-        log.debug("Creating notification entity for userId: {}", request.getUserId());
+        log.debug("Creating notification entity");
         Notification notification = new Notification();
         notification.setUserId(request.getUserId());
         notification.setType(request.getType());
@@ -60,7 +61,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setSentAt(LocalDateTime.now());
 
         Notification saved = notificationRepository.save(notification);
-        log.info("Notification saved successfully with ID: {} for userId: {}", saved.getId(), saved.getUserId());
+        log.info("Notification saved successfully with ID: {}", saved.getId());
 
         // Publish notification event for async processing
         NotificationEvent event = new NotificationEvent();
@@ -72,7 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
         event.setSubject(saved.getSubject());
         event.setEmailType(EmailType.NOTIFICATION);
         eventPublisher.publish(event);
-        log.info("Notification event published and queued for user: {}", saved.getUserId());
+        log.info("Notification event published and queued");
 
         return mapToResponse(saved);
     }
@@ -81,10 +82,12 @@ public class NotificationServiceImpl implements NotificationService {
     // @param request LoginCredentialsRequest containing email, password, and role
     @Override
     public void sendCredentialEmail(LoginCredentialsRequest request) {
-        log.info("Processing credential email request for email: {}, role: {}", request.getEmail(), request.getRole());
-        
+        log.info("Processing credential email request");
+
         NotificationEvent event = new NotificationEvent();
+        event.setNotificationId("CRED-" + System.currentTimeMillis());
         event.setNotificationType(NotificationType.EMAIL);
+        event.setUserId("SYSTEM_CREDENTIALS");
         event.setRecipientEmail(request.getEmail());
         event.setNewRole(request.getRole());
         event.setTemporaryPassword(request.getPassword());
@@ -92,26 +95,25 @@ public class NotificationServiceImpl implements NotificationService {
         event.setSubject("Your Login Credentials");
 
         event.setMessage(String.format("""
-            Hello,
+                Hello,
 
-            Your account has been created successfully.
+                Your account has been created successfully.
 
-            Email: %s
-            Temporary Password: %s
-            Role: %s
+                Email: %s
+                Temporary Password: %s
+                Role: %s
 
-            Please log in with these credentials and change your password immediately.
+                Please log in with these credentials and change your password immediately.
 
-            Best regards,
-            Service Management System
-            """,
+                Best regards,
+                Service Management System
+                """,
                 request.getEmail(),
                 request.getPassword(),
-                request.getRole()
-        ));
+                request.getRole()));
 
         eventPublisher.publish(event);
-        log.info("Credential email event published for email: {}", request.getEmail());
+        log.info("Credential email event published");
     }
 
     // Get all notifications for a specific user
@@ -120,23 +122,24 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponse> getNotificationsForUser(String userId) {
-        log.info("Fetching notifications for userId: '{}'", userId);
-        
+        log.info("Fetching notifications");
+
         if (userId == null || userId.isBlank()) {
             log.warn("Invalid userId provided: null or blank");
             return List.of();
         }
-        
+
         List<Notification> notifications = notificationRepository.findByUserIdOrderBySentAtDesc(userId);
-        log.info("Retrieved {} notifications for userId: '{}'", notifications.size(), userId);
-        
+        log.info("Retrieved {} notifications", notifications.size());
+
         if (notifications.isEmpty()) {
-            log.warn("No notifications found for userId: '{}'", userId);
+            log.warn("No notifications found");
         } else {
-            log.debug("Notifications found for userId: '{}'", userId);
-            notifications.forEach(n -> log.debug("  - id: {}, subject: {}, read: {}", n.getId(), n.getSubject(), n.isRead()));
+            log.debug("Notifications found");
+            notifications.forEach(
+                    n -> log.debug("  - id: {}, subject: {}, read: {}", n.getId(), n.getSubject(), n.isRead()));
         }
-        
+
         return notifications.stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -150,13 +153,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public NotificationResponse markAsRead(String notificationId) {
         log.info("Marking notification as read: {}", notificationId);
-        
+
         Notification notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> {
-                log.warn("Notification not found with id: {}", notificationId);
-                return new NotFoundException("Notification not found for id: " + notificationId);
-            });
-        
+                .orElseThrow(() -> {
+                    log.warn("Notification not found with id: {}", notificationId);
+                    return new NotFoundException("Notification not found for id: " + notificationId);
+                });
+
         notification.setRead(true);
         Notification updated = notificationRepository.save(notification);
         log.info("Notification {} marked as read successfully", notificationId);

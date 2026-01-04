@@ -1,6 +1,5 @@
 package com.app.service_operations_service.controller;
 
-import com.app.service_operations_service.dto.IdMessageResponse;
 import com.app.service_operations_service.dto.requests.*;
 import com.app.service_operations_service.model.enums.RequestStatus;
 import com.app.service_operations_service.service.ServiceRequestService;

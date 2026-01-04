@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 // Login Credentials Request DTO
 // Used to send login credentials to a new user via email
@@ -20,6 +21,7 @@ public class LoginCredentialsRequest {
     @Size(max = 255, message = "Email must not exceed 255 characters")
     private String email;
 
+    @ToString.Exclude
     @NotBlank(message = "Password is required")
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     private String password;

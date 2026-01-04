@@ -1,14 +1,11 @@
 package com.app.notification_service.controller;
 
-import com.app.notification_service.dto.IdMessageResponse;
 import com.app.notification_service.dto.LoginCredentialsRequest;
 import com.app.notification_service.dto.NotificationRequest;
 import com.app.notification_service.dto.NotificationResponse;
 import com.app.notification_service.entity.Notification;
 import com.app.notification_service.enums.NotificationType;
 import com.app.notification_service.exception.BadRequestException;
-import com.app.notification_service.exception.NotificationFetchException;
-import com.app.notification_service.security.RequestUser;
 import com.app.notification_service.security.RequestUserResolver;
 import com.app.notification_service.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,9 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,13 +32,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(value = NotificationController.class, excludeAutoConfiguration = {
-    EurekaClientAutoConfiguration.class
+        EurekaClientAutoConfiguration.class
 })
 @TestPropertySource(properties = {
-    "logging.level.root=INFO",
-    "logging.level.com.app.notification_service=INFO",
-    "spring.application.name=notification-service-test",
-    "server.port=0"
+        "logging.level.root=INFO",
+        "logging.level.com.app.notification_service=INFO",
+        "spring.application.name=notification-service-test",
+        "server.port=0"
 })
 class NotificationControllerTest {
 
@@ -57,19 +53,17 @@ class NotificationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private NotificationService notificationService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    private RequestUser testUser;
     private NotificationRequest notificationRequest;
     private NotificationResponse notificationResponse;
 
     @BeforeEach
     void setUp() {
-        testUser = new RequestUser("user-1", "CUSTOMER");
 
         notificationRequest = new NotificationRequest();
         notificationRequest.setUserId("user-1");
@@ -94,8 +88,8 @@ class NotificationControllerTest {
                 .thenReturn(notificationResponse);
 
         mockMvc.perform(post("/api/notifications/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notificationRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(notificationRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("notif-1"))
                 .andExpect(jsonPath("$.message").value("Notification sent successfully"));
@@ -106,8 +100,8 @@ class NotificationControllerTest {
         notificationRequest.setUserId(""); // Invalid: blank userId
 
         mockMvc.perform(post("/api/notifications/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notificationRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(notificationRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -120,8 +114,8 @@ class NotificationControllerTest {
                 .thenThrow(new BadRequestException("Recipient email is required for EMAIL type notifications"));
 
         mockMvc.perform(post("/api/notifications/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notificationRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(notificationRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -135,8 +129,8 @@ class NotificationControllerTest {
         doNothing().when(notificationService).sendCredentialEmail(any(LoginCredentialsRequest.class));
 
         mockMvc.perform(post("/api/notifications/send-credentials")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isAccepted());
     }
 
@@ -146,8 +140,8 @@ class NotificationControllerTest {
         request.setEmail(""); // Invalid: blank email
 
         mockMvc.perform(post("/api/notifications/send-credentials")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -157,8 +151,8 @@ class NotificationControllerTest {
         when(notificationService.getNotificationsForUser("user-1")).thenReturn(notifications);
 
         mockMvc.perform(get("/api/notifications/user")
-                        .header("X-User-Id", "user-1")
-                        .header("X-User-Role", "CUSTOMER"))
+                .header("X-User-Id", "user-1")
+                .header("X-User-Role", "CUSTOMER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("notif-1"))
                 .andExpect(jsonPath("$[0].userId").value("user-1"));
@@ -179,8 +173,8 @@ class NotificationControllerTest {
                 .thenThrow(new BadRequestException("User ID is required"));
 
         mockMvc.perform(get("/api/notifications/user")
-                        .header("X-User-Id", "")
-                        .header("X-User-Role", "CUSTOMER"))
+                .header("X-User-Id", "")
+                .header("X-User-Role", "CUSTOMER"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -190,8 +184,8 @@ class NotificationControllerTest {
                 .thenThrow(new RuntimeException("Database error"));
 
         mockMvc.perform(get("/api/notifications/user")
-                        .header("X-User-Id", "user-1")
-                        .header("X-User-Role", "CUSTOMER"))
+                .header("X-User-Id", "user-1")
+                .header("X-User-Role", "CUSTOMER"))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -226,6 +220,4 @@ class NotificationControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-
 }
-

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Nonnull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,18 +20,21 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger filterLogger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    @Autowired
-    private JwtUtility jwtUtility;
+    private final JwtUtility jwtUtility;
 
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/refresh");
 
+    public JwtAuthenticationFilter(JwtUtility jwtUtility) {
+        this.jwtUtility = jwtUtility;
+    }
+
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(@Nonnull HttpServletRequest request) {
         String path = request.getServletPath();
 
         return isPreflight(request)
@@ -43,26 +46,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            @Nonnull HttpServletRequest request,
+            @Nonnull HttpServletResponse response,
+            @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getServletPath();
-        logger.debug("[JWT Filter] Processing request: {} {}", request.getMethod(), path);
+        filterLogger.debug("[JWT Filter] Processing request: {} {}", request.getMethod(), path);
 
         try {
             String jwt = extractJwtFromRequest(request);
 
             if (jwt == null) {
-                logger.warn("[JWT Filter] No JWT token found for path: {}", path);
+                filterLogger.warn("[JWT Filter] No JWT token found for path: {}", path);
             } else if (!jwtUtility.validateToken(jwt)) {
-                logger.warn("[JWT Filter] Invalid JWT token for path: {}", path);
+                filterLogger.warn("[JWT Filter] Invalid JWT token for path: {}", path);
             } else {
                 boolean needsPasswordChange = jwtUtility.extractNeedsPasswordChange(jwt);
                 boolean isAllowedPath = path.equals("/api/auth/change-password") || path.equals("/api/auth/logout");
 
                 if (needsPasswordChange && !isAllowedPath) {
-                    logger.warn("[JWT Filter] Access denied: User must change password. Path={}", path);
+                    filterLogger.warn("[JWT Filter] Access denied: User must change password. Path={}", path);
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
                     response.getWriter().write("{\"message\": \"Password change required to access this resource\"}");
@@ -70,15 +73,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 if (isAlreadyAuthenticated()) {
-                    logger.debug("[JWT Filter] Authentication already present, skipping JWT processing");
+                    filterLogger.debug("[JWT Filter] Authentication already present, skipping JWT processing");
                 } else {
-                    logger.debug("[JWT Filter] Processing valid JWT token for path: {}", path);
+                    filterLogger.debug("[JWT Filter] Processing valid JWT token for path: {}", path);
                     authenticate(jwt);
                 }
             }
 
-        } catch (Exception e) {
-            logger.error("[JWT Filter] Error processing JWT token for path: {}", path, e);
+        } catch (IOException e) {
+            filterLogger.error("[JWT Filter] Error processing JWT token for path: {}", path, e);
         }
 
         filterChain.doFilter(request, response);
@@ -116,7 +119,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String userId = jwtUtility.extractUserId(jwt);
 
         if (role == null) {
-            logger.warn(
+            filterLogger.warn(
                     "[JWT Filter] CRITICAL: Role claim is null for userId={}, email={}. This will result in ROLE_null authority!",
                     userId, email);
         }
@@ -131,16 +134,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         authentication.setDetails(userId);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        logger.info("[JWT Filter] Authenticated userId={}, email={}, role={}, authority={}", userId, email, role,
+        filterLogger.info("[JWT Filter] Authenticated userId={}, email={}, role={}, authority={}", userId, email, role,
                 authority.getAuthority());
-    }
-
-    private void logMissingOrInvalid(String jwt, String path) {
-        if (jwt == null) {
-            logger.warn("[JWT Filter] No JWT token found for path: {}", path);
-        } else {
-            logger.warn("[JWT Filter] Invalid JWT token for path: {}", path);
-        }
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {

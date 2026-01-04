@@ -18,7 +18,7 @@ public class UpdateUserProfileRequest {
 	private String name;
 
 	@Size(max = 20, message = "Phone must not exceed 20 characters")
-	@Pattern(regexp = "^[0-9+\\-\\s]*$", message = "Phone must contain only digits, +, -, or spaces")
+	@Pattern(regexp = "^[\\d+\\-\\s]*$", message = "Phone must contain only digits, +, -, or spaces")
 	private String phone;
 
 	@Size(max = 500, message = "Address must not exceed 500 characters")
@@ -31,11 +31,10 @@ public class UpdateUserProfileRequest {
 	private String state;
 
 	@Size(max = 10, message = "Pincode must not exceed 10 characters")
-	@Pattern(regexp = "^[0-9]*$", message = "Pincode must contain only digits")
+	@Pattern(regexp = "^\\d*$", message = "Pincode must contain only digits")
 	private String pincode;
 
 	public UpdateUserProfileRequest(String name) {
 		this.name = name;
 	}
 }
-

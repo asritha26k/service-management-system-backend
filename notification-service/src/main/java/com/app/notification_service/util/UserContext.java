@@ -55,7 +55,7 @@ public final class UserContext {
         try {
             Role role = parseRole(userRole);
             return Set.of(roles).contains(role);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | java.util.NoSuchElementException e) {
             return false;
         }
     }

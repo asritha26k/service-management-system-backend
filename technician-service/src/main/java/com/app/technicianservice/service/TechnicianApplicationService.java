@@ -32,6 +32,14 @@ import com.app.technicianservice.util.UserContext;
 @Transactional
 public class TechnicianApplicationService {
 
+    // Business rule constants
+    private static final long REAPPLICATION_COOLDOWN_SECONDS = 30L * 24 * 60 * 60; // 30 days
+    private static final int MIN_EXPERIENCE_YEARS = 1;
+    private static final int MIN_WORKLOAD = 1;
+    private static final int MAX_WORKLOAD = 20;
+    private static final int MIN_REJECTION_REASON_LENGTH = 10;
+    private static final int TEMP_PASSWORD_LENGTH = 12;
+
     private final TechnicianApplicationRepository repository;
     private final IdentityServiceClient identityClient;
     private final NotificationServiceClient notificationClient;
@@ -57,19 +65,19 @@ public class TechnicianApplicationService {
             }
             // Business Rule: Cannot reapply within 30 days of rejection
             if (app.getReviewedAt() != null && 
-                app.getReviewedAt().isAfter(Instant.now().minusSeconds(30L * 24 * 60 * 60))) {
+                app.getReviewedAt().isAfter(Instant.now().minusSeconds(REAPPLICATION_COOLDOWN_SECONDS))) {
                 throw new BadRequestException("Cannot reapply within 30 days of rejection");
             }
         });
         
         // Business Rule: Minimum experience requirement
-        if (request.getExperience() < 1) {
-            throw new BadRequestException("Minimum 1 year of experience required");
+        if (request.getExperience() < MIN_EXPERIENCE_YEARS) {
+            throw new BadRequestException("Minimum " + MIN_EXPERIENCE_YEARS + " year of experience required");
         }
         
         // Business Rule: Maximum workload must be reasonable (1-20)
-        if (request.getMaxWorkload() < 1 || request.getMaxWorkload() > 20) {
-            throw new BadRequestException("Maximum workload must be between 1 and 20");
+        if (request.getMaxWorkload() < MIN_WORKLOAD || request.getMaxWorkload() > MAX_WORKLOAD) {
+            throw new BadRequestException("Maximum workload must be between " + MIN_WORKLOAD + " and " + MAX_WORKLOAD);
         }
 
         TechnicianApplication app = new TechnicianApplication();
@@ -93,7 +101,7 @@ public class TechnicianApplicationService {
 
         TechnicianApplication app = getPending(id);
 
-        String tempPassword = UUID.randomUUID().toString().substring(0, 12);
+        String tempPassword = UUID.randomUUID().toString().substring(0, TEMP_PASSWORD_LENGTH);
 
         RegisterTechnicianRequest registerRequest =
                 new RegisterTechnicianRequest(app.getEmail(), app.getFullName(), app.getPhone());
@@ -113,7 +121,14 @@ public class TechnicianApplicationService {
         }
 
         // Extract userId from registration response
-        String technicianUserId = registerResponse.getBody().getId();
+        UserAuthResponse responseBody = registerResponse.getBody();
+        if (responseBody == null) {
+            throw new BadRequestException("Invalid response from identity service: empty response body");
+        }
+        String technicianUserId = responseBody.getId();
+        if (technicianUserId == null || technicianUserId.isBlank()) {
+            throw new BadRequestException("Invalid response from identity service: missing user ID");
+        }
 
         // Create technician profile from application data
         CreateProfileRequest profileRequest = new CreateProfileRequest();
@@ -150,8 +165,8 @@ public class TechnicianApplicationService {
             throw new BadRequestException("Rejection reason is required");
         }
         
-        if (rejectionReason.trim().length() < 10) {
-            throw new BadRequestException("Rejection reason must be at least 10 characters");
+        if (rejectionReason.trim().length() < MIN_REJECTION_REASON_LENGTH) {
+            throw new BadRequestException("Rejection reason must be at least " + MIN_REJECTION_REASON_LENGTH + " characters");
         }
 
         TechnicianApplication app = getPending(id);

@@ -1,8 +1,6 @@
 package com.app.api_gateway.config;
 
 import org.springdoc.core.models.GroupedOpenApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -17,8 +15,10 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Autowired
-    private RouteDefinitionLocator locator;
+    
+    public SwaggerConfig() {
+        // Default constructor for Spring auto-wiring
+    }
 
     //configure the main open ai
     @Bean

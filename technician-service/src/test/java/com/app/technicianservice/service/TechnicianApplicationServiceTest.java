@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
@@ -98,8 +97,7 @@ class TechnicianApplicationServiceTest {
 
         when(repository.findByEmail("john@example.com")).thenReturn(Optional.of(existingApp));
 
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.applyForTechnician(applicationRequest));
+        assertThrows(BadRequestException.class, () -> applicationService.applyForTechnician(applicationRequest));
     }
 
     @Test
@@ -110,8 +108,7 @@ class TechnicianApplicationServiceTest {
 
         when(repository.findByEmail("john@example.com")).thenReturn(Optional.of(rejectedApp));
 
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.applyForTechnician(applicationRequest));
+        assertThrows(BadRequestException.class, () -> applicationService.applyForTechnician(applicationRequest));
     }
 
     @Test
@@ -133,21 +130,15 @@ class TechnicianApplicationServiceTest {
     void applyForTechnician_ShouldThrowBadRequest_WhenExperienceLessThan1() {
         applicationRequest.setExperience(0);
 
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.applyForTechnician(applicationRequest));
+        assertThrows(BadRequestException.class, () -> applicationService.applyForTechnician(applicationRequest));
     }
 
-    @Test
-    void applyForTechnician_ShouldThrowBadRequest_WhenMaxWorkloadInvalid() {
-        applicationRequest.setMaxWorkload(0);
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints = { 0, 21 })
+    void applyForTechnician_ShouldThrowBadRequest_WhenMaxWorkloadInvalid(int maxWorkload) {
+        applicationRequest.setMaxWorkload(maxWorkload);
 
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.applyForTechnician(applicationRequest));
-
-        applicationRequest.setMaxWorkload(21);
-
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.applyForTechnician(applicationRequest));
+        assertThrows(BadRequestException.class, () -> applicationService.applyForTechnician(applicationRequest));
     }
 
     @Test
@@ -161,7 +152,7 @@ class TechnicianApplicationServiceTest {
         app2.setStatus(TechnicianApplication.ApplicationStatus.PENDING);
 
         when(repository.findByStatus(TechnicianApplication.ApplicationStatus.PENDING))
-            .thenReturn(Arrays.asList(app1, app2));
+                .thenReturn(Arrays.asList(app1, app2));
 
         List<ApplicationReviewResponse> responses = applicationService.getPendingApplications(adminUser);
 
@@ -181,11 +172,11 @@ class TechnicianApplicationServiceTest {
 
         when(repository.findById("app-1")).thenReturn(Optional.of(application));
         when(identityClient.registerTechnician(any(RegisterTechnicianRequest.class)))
-            .thenReturn(registerResponse);
+                .thenReturn(registerResponse);
         when(technicianService.createProfile(any(RequestUser.class), any(CreateProfileRequest.class)))
-            .thenReturn(profileResponse);
+                .thenReturn(profileResponse);
         when(notificationClient.sendCredentialsEmail(any()))
-            .thenReturn(ResponseEntity.accepted().build());
+                .thenReturn(ResponseEntity.accepted().build());
         when(repository.save(any(TechnicianApplication.class))).thenReturn(application);
 
         ApplicationReviewResponse response = applicationService.approveApplication(adminUser, "app-1");
@@ -203,10 +194,9 @@ class TechnicianApplicationServiceTest {
     void approveApplication_ShouldThrowConflictException_WhenEmailAlreadyRegistered() {
         when(repository.findById("app-1")).thenReturn(Optional.of(application));
         when(identityClient.registerTechnician(any(RegisterTechnicianRequest.class)))
-            .thenThrow(FeignException.Conflict.class);
+                .thenThrow(FeignException.Conflict.class);
 
-        assertThrows(ConflictException.class, () -> 
-            applicationService.approveApplication(adminUser, "app-1"));
+        assertThrows(ConflictException.class, () -> applicationService.approveApplication(adminUser, "app-1"));
     }
 
     @Test
@@ -214,16 +204,14 @@ class TechnicianApplicationServiceTest {
         application.setStatus(TechnicianApplication.ApplicationStatus.APPROVED);
         when(repository.findById("app-1")).thenReturn(Optional.of(application));
 
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.approveApplication(adminUser, "app-1"));
+        assertThrows(BadRequestException.class, () -> applicationService.approveApplication(adminUser, "app-1"));
     }
 
     @Test
     void approveApplication_ShouldThrowNotFoundException_WhenApplicationNotFound() {
         when(repository.findById("invalid-id")).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> 
-            applicationService.approveApplication(adminUser, "invalid-id"));
+        assertThrows(NotFoundException.class, () -> applicationService.approveApplication(adminUser, "invalid-id"));
     }
 
     @Test
@@ -234,7 +222,7 @@ class TechnicianApplicationServiceTest {
         when(repository.save(any(TechnicianApplication.class))).thenReturn(application);
 
         ApplicationReviewResponse response = applicationService.rejectApplication(
-            adminUser, "app-1", rejectionReason);
+                adminUser, "app-1", rejectionReason);
 
         assertNotNull(response);
         assertEquals(TechnicianApplication.ApplicationStatus.REJECTED, application.getStatus());
@@ -246,20 +234,18 @@ class TechnicianApplicationServiceTest {
 
     @Test
     void rejectApplication_ShouldThrowBadRequest_WhenReasonIsNull() {
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.rejectApplication(adminUser, "app-1", null));
+        assertThrows(BadRequestException.class, () -> applicationService.rejectApplication(adminUser, "app-1", null));
     }
 
     @Test
     void rejectApplication_ShouldThrowBadRequest_WhenReasonIsBlank() {
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.rejectApplication(adminUser, "app-1", "   "));
+        assertThrows(BadRequestException.class, () -> applicationService.rejectApplication(adminUser, "app-1", "   "));
     }
 
     @Test
     void rejectApplication_ShouldThrowBadRequest_WhenReasonTooShort() {
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.rejectApplication(adminUser, "app-1", "Short"));
+        assertThrows(BadRequestException.class,
+                () -> applicationService.rejectApplication(adminUser, "app-1", "Short"));
     }
 
     @Test
@@ -267,16 +253,15 @@ class TechnicianApplicationServiceTest {
         application.setStatus(TechnicianApplication.ApplicationStatus.APPROVED);
         when(repository.findById("app-1")).thenReturn(Optional.of(application));
 
-        assertThrows(BadRequestException.class, () -> 
-            applicationService.rejectApplication(adminUser, "app-1", "Valid rejection reason here"));
+        assertThrows(BadRequestException.class,
+                () -> applicationService.rejectApplication(adminUser, "app-1", "Valid rejection reason here"));
     }
 
     @Test
     void rejectApplication_ShouldThrowNotFoundException_WhenApplicationNotFound() {
         when(repository.findById("invalid-id")).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> 
-            applicationService.rejectApplication(adminUser, "invalid-id", "Valid rejection reason here"));
+        assertThrows(NotFoundException.class,
+                () -> applicationService.rejectApplication(adminUser, "invalid-id", "Valid rejection reason here"));
     }
 }
-

@@ -21,10 +21,15 @@ import com.app.service_operations_service.repository.ServiceItemRepository;
 @Transactional
 public class CatalogService {
 
+    private static final String ITEM_NOT_FOUND_MESSAGE = "Service item not found: ";
+
     private final ServiceCategoryRepository categoryRepository;
     private final ServiceItemRepository itemRepository;
 
-    public CatalogService(ServiceCategoryRepository categoryRepository, ServiceItemRepository itemRepository) {
+    public CatalogService(
+            ServiceCategoryRepository categoryRepository,
+            ServiceItemRepository itemRepository
+    ) {
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
     }
@@ -33,19 +38,20 @@ public class CatalogService {
         ServiceCategory category = new ServiceCategory();
         category.setName(request.getName());
         category.setDescription(request.getDescription());
-        ServiceCategory saved = categoryRepository.save(category);
-        return toCategoryResponse(saved);
+        return toCategoryResponse(categoryRepository.save(category));
     }
 
     public List<ServiceCategoryResponse> listCategories() {
-        return categoryRepository.findByIsActiveTrue().stream()
+        return categoryRepository.findByIsActiveTrue()
+                .stream()
                 .map(this::toCategoryResponse)
                 .toList();
     }
 
     public ServiceCategoryResponse getCategoryById(String id) {
         ServiceCategory category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Service category not found: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException("Service category not found: " + id));
         return toCategoryResponse(category);
     }
 
@@ -55,57 +61,79 @@ public class CatalogService {
         item.setName(request.getName());
         item.setDescription(request.getDescription());
         item.setBasePrice(request.getBasePrice());
-        item.setEstimatedDuration(Duration.ofMinutes(request.getEstimatedDurationMinutes()));
+        item.setEstimatedDuration(
+                Duration.ofMinutes(request.getEstimatedDurationMinutes()));
         item.setSlaHours(request.getSlaHours());
+
         if (request.getImages() != null) {
-            item.setImages(request.getImages().stream()
-                    .map(img -> new ServiceItem.ServiceItemImage(img.getUrl(), img.getAlt()))
+            item.setImages(request.getImages()
+                    .stream()
+                    .map(img ->
+                            new ServiceItem.ServiceItemImage(
+                                    img.getUrl(), img.getAlt()))
                     .toList());
         }
-        ServiceItem saved = itemRepository.save(item);
-        return toItemResponse(saved);
+
+        return toItemResponse(itemRepository.save(item));
     }
 
     public List<ServiceItemResponse> listServices() {
-        return itemRepository.findByIsActiveTrue().stream()
+        return itemRepository.findByIsActiveTrue()
+                .stream()
                 .map(this::toItemResponse)
                 .toList();
     }
 
     public ServiceItemResponse getServiceById(String id) {
         ServiceItem item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Service item not found: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException(ITEM_NOT_FOUND_MESSAGE + id));
         return toItemResponse(item);
     }
 
-    public ServiceItemResponse updateService(String id, UpdateServiceItemRequest request) {
+    public ServiceItemResponse updateService(
+            String id,
+            UpdateServiceItemRequest request
+    ) {
         ServiceItem item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Service item not found: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException(ITEM_NOT_FOUND_MESSAGE + id));
+
         item.setName(request.getName());
         item.setDescription(request.getDescription());
         item.setBasePrice(request.getBasePrice());
-        item.setEstimatedDuration(Duration.ofMinutes(request.getEstimatedDurationMinutes()));
+        item.setEstimatedDuration(
+                Duration.ofMinutes(request.getEstimatedDurationMinutes()));
         item.setSlaHours(request.getSlaHours());
+
         if (request.getActive() != null) {
             item.setActive(request.getActive());
         }
+
         if (request.getImages() != null) {
-            item.setImages(request.getImages().stream()
-                    .map(img -> new ServiceItem.ServiceItemImage(img.getUrl(), img.getAlt()))
+            item.setImages(request.getImages()
+                    .stream()
+                    .map(img ->
+                            new ServiceItem.ServiceItemImage(
+                                    img.getUrl(), img.getAlt()))
                     .toList());
         }
+
         return toItemResponse(itemRepository.save(item));
     }
 
     public List<ServiceItemResponse> listServicesByCategory(String categoryId) {
-        return itemRepository.findByCategoryIdAndIsActiveTrue(categoryId).stream()
+        return itemRepository
+                .findByCategoryIdAndIsActiveTrue(categoryId)
+                .stream()
                 .map(this::toItemResponse)
                 .toList();
     }
 
     public void deleteService(String id) {
         ServiceItem item = itemRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Service item not found: " + id));
+                .orElseThrow(() ->
+                        new NotFoundException(ITEM_NOT_FOUND_MESSAGE + id));
         itemRepository.delete(item);
     }
 
@@ -126,20 +154,27 @@ public class CatalogService {
         response.setName(item.getName());
         response.setDescription(item.getDescription());
         response.setBasePrice(item.getBasePrice());
-        response.setEstimatedDurationMinutes(item.getEstimatedDuration() != null
-                ? item.getEstimatedDuration().toMinutes() : null);
+        response.setEstimatedDurationMinutes(
+                item.getEstimatedDuration() != null
+                        ? item.getEstimatedDuration().toMinutes()
+                        : null);
         response.setSlaHours(item.getSlaHours());
+        response.setActive(item.isActive());
+        response.setCreatedAt(item.getCreatedAt());
+
         if (item.getImages() != null) {
-            response.setImages(item.getImages().stream()
+            response.setImages(item.getImages()
+                    .stream()
                     .map(img -> {
-                        ServiceItemResponse.ServiceItemImagePayload payload = new ServiceItemResponse.ServiceItemImagePayload();
+                        ServiceItemResponse.ServiceItemImagePayload payload =
+                                new ServiceItemResponse.ServiceItemImagePayload();
                         payload.setUrl(img.getUrl());
                         payload.setAlt(img.getAlt());
                         return payload;
-                    }).toList());
+                    })
+                    .toList());
         }
-        response.setActive(item.isActive());
-        response.setCreatedAt(item.getCreatedAt());
+
         return response;
     }
 }

@@ -30,8 +30,15 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - app-net
+
 
   api-gateway:
     build: ./api-gateway
@@ -121,7 +128,7 @@ services:
     environment:
       MONGO_INITDB_DATABASE: service_operations_db
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongodb-data:/data/db
     healthcheck:
@@ -170,7 +177,7 @@ services:
       eureka-server:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
       mysql-identity:
         condition: service_healthy
     networks:
@@ -186,8 +193,8 @@ services:
       DB_USERNAME: ${DB_USERNAME_NOTIFICATION:-notificationuser}
       DB_PASSWORD: ${DB_PASSWORD_NOTIFICATION:-notificationpass}
       JWT_SECRET: ${JWT_SECRET}
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
@@ -196,7 +203,7 @@ services:
       eureka-server:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
       mysql-notification:
         condition: service_healthy
       rabbitmq:
@@ -216,7 +223,7 @@ services:
       eureka-server:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
       mongodb:
         condition: service_healthy
     networks:
@@ -235,7 +242,7 @@ services:
       eureka-server:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
       mysql-technician:
         condition: service_healthy
     networks:

@@ -18,9 +18,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,22 +30,22 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = UserController.class, excludeAutoConfiguration = {
-    EurekaClientAutoConfiguration.class,
-    SecurityAutoConfiguration.class
+        EurekaClientAutoConfiguration.class,
+        SecurityAutoConfiguration.class
 })
 @AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 @TestPropertySource(properties = {
-    "logging.level.root=INFO",
-    "logging.level.com.app.identity_service=INFO",
-    "spring.cloud.config.enabled=false",
-    "spring.cloud.config.import-check.enabled=false",
-    "spring.application.name=identity-service-test",
-    "server.port=0",
-    "LOG_LEVEL_ROOT=INFO",
-    "LOG_LEVEL_APP=INFO",
-    "SPRING_APPLICATION_NAME=identity-service-test",
-    "SERVER_PORT=0"
+        "logging.level.root=INFO",
+        "logging.level.com.app.identity_service=INFO",
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.config.import-check.enabled=false",
+        "spring.application.name=identity-service-test",
+        "server.port=0",
+        "LOG_LEVEL_ROOT=INFO",
+        "LOG_LEVEL_APP=INFO",
+        "SPRING_APPLICATION_NAME=identity-service-test",
+        "SERVER_PORT=0"
 })
 class UserControllerTest {
 
@@ -137,7 +134,7 @@ class UserControllerTest {
         when(userService.searchUsersByEmail("user")).thenReturn(users);
 
         mockMvc.perform(get("/api/users/search")
-                        .param("email", "user"))
+                .param("email", "user"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("user-1"))
                 .andExpect(jsonPath("$[0].email").value("user@example.com"));
@@ -148,7 +145,7 @@ class UserControllerTest {
         when(userService.searchUsersByEmail("nonexistent")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/users/search")
-                        .param("email", "nonexistent"))
+                .param("email", "nonexistent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
     }
@@ -173,4 +170,3 @@ class UserControllerTest {
                 .andExpect(status().isNotFound());
     }
 }
-

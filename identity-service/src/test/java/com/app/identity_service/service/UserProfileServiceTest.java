@@ -78,17 +78,6 @@ class UserProfileServiceTest {
     }
 
     @Test
-    void createProfile_ShouldCreateProfileWithThirdParameter() {
-        when(userProfileRepository.existsByUserId("user-1")).thenReturn(false);
-        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(userProfile);
-
-        UserProfileResponse response = userProfileService.createProfile("user-1", profileRequest, null);
-
-        assertNotNull(response);
-        verify(userProfileRepository, times(1)).save(any(UserProfile.class));
-    }
-
-    @Test
     void getProfileByUserId_ShouldReturnProfile() {
         when(userProfileRepository.findByUserId("user-1")).thenReturn(Optional.of(userProfile));
 

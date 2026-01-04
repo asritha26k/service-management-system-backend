@@ -58,7 +58,7 @@ public final class UserContext {
         try {
             Role r = parseRole(userRole);
             return r == Role.ADMIN || r == Role.MANAGER;
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | java.util.NoSuchElementException e) {
             return false;
         }
     }

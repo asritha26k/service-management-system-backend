@@ -1,6 +1,5 @@
 package com.app.service_operations_service.dto.dashboard;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

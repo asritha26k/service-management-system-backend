@@ -4,7 +4,6 @@ import com.app.identity_service.dto.PagedResponse;
 import com.app.identity_service.dto.UserAuthResponse;
 import com.app.identity_service.dto.UserDetailResponse;
 import com.app.identity_service.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,8 +20,11 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
-	@Autowired
-	private UserService userService;
+	private final UserService userService;
+
+	public UserController(UserService userService) {
+		this.userService = userService;
+	}
 
 	
 	  //Get all users by role endpoint with pagination support and profile details

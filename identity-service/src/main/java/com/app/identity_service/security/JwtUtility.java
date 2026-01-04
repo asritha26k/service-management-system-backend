@@ -74,7 +74,7 @@ public class JwtUtility {
                     .build()
                     .parseSignedClaims(token);
             return true;
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.security.SignatureException | io.jsonwebtoken.ExpiredJwtException | io.jsonwebtoken.UnsupportedJwtException | io.jsonwebtoken.MalformedJwtException | IllegalArgumentException e) {
             return false;
         }
     }
@@ -109,7 +109,7 @@ public class JwtUtility {
     public boolean isTokenExpired(String token) {
         try {
             return extractAllClaims(token).getExpiration().before(new Date());
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.JwtException | java.lang.NullPointerException e) {
             return true;
         }
     }
@@ -119,7 +119,7 @@ public class JwtUtility {
             long remaining = extractAllClaims(token).getExpiration().getTime()
                     - System.currentTimeMillis();
             return Math.max(remaining, 0);
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.JwtException | java.lang.NullPointerException e) {
             return 0;
         }
     }

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,18 +46,27 @@ public class AuthService {
 
     private static final String FAILED_CREDENTIALS_EMAIL_MSG = "Failed to send credentials email: ";
 
-    @Autowired
-    private UserAuthRepository userAuthRepository;
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-    @Autowired
-    private UserProfileService userProfileService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtUtility jwtUtility;
-    @Autowired
-    private NotificationServiceClient notificationServiceClient;
+    private final UserAuthRepository userAuthRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserProfileService userProfileService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtility jwtUtility;
+    private final NotificationServiceClient notificationServiceClient;
+
+    public AuthService(
+            UserAuthRepository userAuthRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            UserProfileService userProfileService,
+            PasswordEncoder passwordEncoder,
+            JwtUtility jwtUtility,
+            NotificationServiceClient notificationServiceClient) {
+        this.userAuthRepository = userAuthRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.userProfileService = userProfileService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtility = jwtUtility;
+        this.notificationServiceClient = notificationServiceClient;
+    }
 
     // ================= register customer =================
 
@@ -77,8 +85,7 @@ public class AuthService {
 
         UserAuth savedUser = userAuthRepository.save(user);
 
-        UpdateUserProfileRequest profileRequest = new UpdateUserProfileRequest();
-        profileRequest.setName(request.getName());
+        UpdateUserProfileRequest profileRequest = new UpdateUserProfileRequest(request.getName());
         profileRequest.setPhone(request.getPhone());
         profileRequest.setAddress(request.getAddress());
         profileRequest.setCity(request.getCity());
@@ -114,14 +121,9 @@ public class AuthService {
 
         UserAuth savedUser = userAuthRepository.save(user);
 
-        UpdateUserProfileRequest profileRequest = new UpdateUserProfileRequest();
-        profileRequest.setName(request.getName());
-        profileRequest.setPhone(request.getPhone());
-
         userProfileService.createProfile(
                 savedUser.getId(),
-                profileRequest,
-                null);
+                new UpdateUserProfileRequest(request.getName()));
 
         sendCredentialsEmailSafely(request.getEmail(), temporaryPassword, role);
 
@@ -162,8 +164,7 @@ public class AuthService {
 
         UserAuth savedUser = userAuthRepository.save(user);
 
-        UpdateUserProfileRequest profileRequest = new UpdateUserProfileRequest();
-        profileRequest.setName(request.getName());
+        UpdateUserProfileRequest profileRequest = new UpdateUserProfileRequest(request.getName());
         profileRequest.setPhone(request.getPhone());
 
         userProfileService.createProfile(
@@ -220,8 +221,8 @@ public class AuthService {
         try {
             notificationServiceClient.sendCredentialsEmail(
                     new LoginCredentialsRequest(email, password, role.name()));
-        } catch (Exception e) {
-            logger.error(FAILED_CREDENTIALS_EMAIL_MSG + e.getMessage(), e);
+        } catch (feign.FeignException e) {
+            logger.error(FAILED_CREDENTIALS_EMAIL_MSG + "Redacted error message");
         }
     }
 

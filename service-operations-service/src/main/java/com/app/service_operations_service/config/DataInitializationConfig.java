@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,242 +18,260 @@ import com.app.service_operations_service.model.ServiceItem;
 import com.app.service_operations_service.repository.ServiceCategoryRepository;
 import com.app.service_operations_service.repository.ServiceItemRepository;
 
-// Data Initialization Configuration
-// Automatically creates predefined service categories on application startup
 @Configuration
 public class DataInitializationConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataInitializationConfig.class);
+    private static final Logger logger =
+            LoggerFactory.getLogger(DataInitializationConfig.class);
+
+    private static final String INIT_START =
+            "==================== DATA INITIALIZATION STARTED ====================";
+    private static final String INIT_END =
+            "==================== DATA INITIALIZATION COMPLETED ====================";
+    private static final String INIT_FAILED =
+            "==================== DATA INITIALIZATION FAILED ====================";
+
+    private static final String INSTALLATION = "Installation";
+    private static final String MAINTENANCE = "Maintenance";
+    private static final String REPAIR = "Repair";
+
+    private static final String HVAC_INSTALL = "hvac-system-installation";
+    private static final String HVAC_MAINTENANCE = "hvac-seasonal-maintenance";
+    private static final String AC_REPAIR = "air-conditioner-repair";
+
+    private static final String SMART_THERMOSTAT = "smart-thermostat-installation";
+    private static final String AC_TUNEUP = "ac-tuneup-cleaning";
+    private static final String DUCT_CLEANING = "duct-inspection-cleaning";
+    private static final String FILTER_REPLACEMENT = "filter-replacement";
+    private static final String INDOOR_AIR_QUALITY = "indoor-air-quality-audit";
+
+    private static final String FURNACE_INSTALL = "furnace-installation";
+    private static final String DUCTLESS_INSTALL = "ductless-ac-installation";
+
+    private static final String FURNACE_REPAIR = "furnace-repair";
+    private static final String EMERGENCY_REPAIR = "emergency-hvac-repair";
+    private static final String LEAK_REPAIR = "refrigerant-leak-repair";
+
+    // Unsplash image URLs (free for commercial use, no attribution required) [web:22][web:39][web:40][web:28][web:37][web:36][web:21]
+    private static final String DEFAULT_SERVICE_IMAGE_URL =
+            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800"; // HVAC units on roof [web:22]
+
+    private static final String AC_REPAIR_IMAGE_URL =
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800"; // Technician working on AC [web:28]
+
+    private static final String HVAC_INSTALL_IMAGE_URL =
+            "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=800"; // Industrial HVAC piping [web:22]
+
+    private static final String HVAC_MAINTENANCE_IMAGE_URL =
+            "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=800"; // Technician with gauges [web:21]
+
+    private static final String DUCT_CLEANING_IMAGE_URL =
+            "https://images.unsplash.com/photo-1604882817831-658e1ac26b3d?w=800"; // Duct / ventilation [web:24][web:25]
+
+    private static final String SMART_THERMOSTAT_IMAGE_URL =
+            "https://images.unsplash.com/photo-1511452885600-a3d2c9148a31?w=800"; // Smart thermostat on wall [web:39][web:36]
+
+    private static final String AC_TUNEUP_IMAGE_URL =
+            "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800"; // AC tune-up and cleaning [web:22]
+
+    private static final String FILTER_REPLACEMENT_IMAGE_URL =
+            "https://images.unsplash.com/photo-1582719478250-cc76ab7c9a3e?w=800"; // AC front panel open [web:37][web:28]
+
+    private static final String INDOOR_AIR_QUALITY_IMAGE_URL =
+            "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800"; // Clean modern interior [web:40]
+
+    private static final String FURNACE_INSTALL_IMAGE_URL =
+            "https://images.unsplash.com/photo-1604014237800-1c9102c219da?w=800"; // Heating equipment [web:22]
+
+    private static final String DUCTLESS_INSTALL_IMAGE_URL =
+            "https://images.unsplash.com/photo-1599751449128-16a7faa75d14?w=800"; // Wall-mounted split AC [web:34][web:40]
+
+    private static final String FURNACE_REPAIR_IMAGE_URL =
+            "https://images.unsplash.com/photo-1517246982581-5ca4f7f4a98e?w=800"; // Technician in boiler room [web:22]
+
+    private static final String EMERGENCY_REPAIR_IMAGE_URL =
+            "https://images.unsplash.com/photo-1581091012184-5c8afae1c4d7?w=800"; // Night technician / tools [web:21]
+
+    private static final String LEAK_REPAIR_IMAGE_URL =
+            "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800"; // Close-up tools / piping [web:21]
 
     @Bean
-    public CommandLineRunner initializeServiceCategories(
+    public CommandLineRunner initialize(
             ServiceCategoryRepository categoryRepository,
-            ServiceItemRepository itemRepository) {
+            ServiceItemRepository itemRepository
+    ) {
         return args -> {
             try {
+                logger.info(INIT_START);
 
-                logger.info("==================== DATA INITIALIZATION STARTED ====================");
-                
-                // Check if categories already exist
-                long existingCategoryCount = categoryRepository.count();
-                logger.info("Found {} existing service categories in database", existingCategoryCount);
-                
-                if (existingCategoryCount > 0) {
-                    logger.info("Service categories already exist. Skipping category initialization.");
-                } else {
-                    logger.info("Initializing default service categories...");
-
-                    // Create predefined service categories
-                    List<ServiceCategory> defaultCategories = List.of(
-                            createCategory(
-                                    "Installation",
-                                    "New equipment and system installation services including setup, configuration, and testing"
-                            ),
-                            createCategory(
-                                    "Maintenance",
-                                    "Regular maintenance services including inspection, cleaning, and preventive care"
-                            ),
-                            createCategory(
-                                    "Repair",
-                                    "Repair and troubleshooting services for existing equipment and systems"
-                            )
-                    );
-
-                    // Save all categories
-                    List<ServiceCategory> saved = categoryRepository.saveAll(defaultCategories);
-                    
-                    logger.info("Successfully initialized {} service categories", saved.size());
-                    saved.forEach(category -> 
-                        logger.info("  - {} (ID: {}) - {}", category.getName(), category.getId(), category.getDescription())
-                    );
+                if (categoryRepository.count() == 0) {
+                    categoryRepository.saveAll(List.of(
+                            createCategory(INSTALLATION,
+                                    "New equipment and system installation services"),
+                            createCategory(MAINTENANCE,
+                                    "Regular inspection and preventive maintenance services"),
+                            createCategory(REPAIR,
+                                    "Repair and troubleshooting services")
+                    ));
                 }
 
-                // Check if service items already exist
-                long existingItemCount = itemRepository.count();
-                logger.info("Found {} existing service items in database", existingItemCount);
-                
-                if (existingItemCount > 0) {
-                    logger.info("Service items already exist. Skipping service item initialization.");
-                    logger.info("==================== DATA INITIALIZATION COMPLETED ====================");
+                if (itemRepository.count() > 0) {
+                    logger.info(INIT_END);
                     return;
                 }
 
-                logger.info("Initializing default service items...");
+                Map<String, String> categoryIds =
+                        categoryRepository.findAll()
+                                .stream()
+                                .collect(Collectors.toMap(
+                                        ServiceCategory::getName,
+                                        ServiceCategory::getId
+                                ));
 
-            // Fetch categories to link service items
-            List<ServiceCategory> categories = categoryRepository.findAll();
-            ServiceCategory installationCategory = categories.stream()
-                    .filter(c -> "Installation".equals(c.getName()))
-                    .findFirst()
-                    .orElse(null);
-            ServiceCategory maintenanceCategory = categories.stream()
-                    .filter(c -> "Maintenance".equals(c.getName()))
-                    .findFirst()
-                    .orElse(null);
-            ServiceCategory repairCategory = categories.stream()
-                    .filter(c -> "Repair".equals(c.getName()))
-                    .findFirst()
-                    .orElse(null);
+                List<ServiceItem> items = new ArrayList<>();
 
-            List<ServiceItem> defaultServiceItems = new ArrayList<>();
-
-            // Installation Services
-            if (installationCategory != null) {
-                defaultServiceItems.add(createServiceItem(
-                        installationCategory.getId(),
+                // Existing items
+                items.add(createServiceItem(
+                        categoryIds.get(INSTALLATION),
                         "HVAC System Installation",
-                        "Complete installation of heating, ventilation, and air conditioning systems including ductwork, thermostats, and initial calibration",
+                        "Complete HVAC system installation for residential or light commercial spaces",
                         new BigDecimal("2500.00"),
-                        480, // 8 hours
+                        480,
                         48,
-                        "hvac-system-installation"
+                        HVAC_INSTALL
                 ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        installationCategory.getId(),
-                        "Water Heater Installation",
-                        "Professional installation of residential or commercial water heaters including all connections and safety checks",
-                        new BigDecimal("800.00"),
-                        180, // 3 hours
-                        24,
-                        "water-heater-installation"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        installationCategory.getId(),
-                        "Electrical Panel Installation",
-                        "Installation of new electrical service panel with circuit breakers and proper grounding",
-                        new BigDecimal("1500.00"),
-                        300, // 5 hours
-                        36,
-                        "electrical-panel-installation"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        installationCategory.getId(),
-                        "Smart Home System Setup",
-                        "Installation and configuration of smart home automation systems including lighting, security, and climate control",
-                        new BigDecimal("1200.00"),
-                        240, // 4 hours
-                        24,
-                        "smart-home-system-setup"
-                ));
-            }
 
-            // Maintenance Services
-            if (maintenanceCategory != null) {
-                defaultServiceItems.add(createServiceItem(
-                        maintenanceCategory.getId(),
+                items.add(createServiceItem(
+                        categoryIds.get(MAINTENANCE),
                         "HVAC Seasonal Maintenance",
-                        "Comprehensive HVAC system inspection including filter replacement, coil cleaning, refrigerant level check, and performance testing",
+                        "Seasonal HVAC inspection, cleaning, and performance optimization",
                         new BigDecimal("150.00"),
-                        90, // 1.5 hours
+                        90,
                         12,
-                        "hvac-seasonal-maintenance"
+                        HVAC_MAINTENANCE
                 ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        maintenanceCategory.getId(),
-                        "Plumbing System Inspection",
-                        "Thorough inspection of all plumbing fixtures, pipes, drains, and water pressure systems",
-                        new BigDecimal("120.00"),
-                        60, // 1 hour
-                        8,
-                        "plumbing-system-inspection"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        maintenanceCategory.getId(),
-                        "Electrical Safety Inspection",
-                        "Complete electrical system safety inspection including outlets, switches, circuit breakers, and grounding",
-                        new BigDecimal("180.00"),
-                        120, // 2 hours
-                        12,
-                        "electrical-safety-inspection"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        maintenanceCategory.getId(),
-                        "Appliance Tune-Up Service",
-                        "Preventive maintenance for major appliances including cleaning, calibration, and minor adjustments",
-                        new BigDecimal("100.00"),
-                        60, // 1 hour
-                        8,
-                        "appliance-tune-up-service"
-                ));
-            }
 
-            // Repair Services
-            if (repairCategory != null) {
-                defaultServiceItems.add(createServiceItem(
-                        repairCategory.getId(),
+                items.add(createServiceItem(
+                        categoryIds.get(REPAIR),
                         "Air Conditioner Repair",
-                        "Diagnosis and repair of air conditioning units including compressor, refrigerant leaks, and electrical issues",
+                        "AC diagnosis and repair service for common cooling issues",
                         new BigDecimal("250.00"),
-                        120, // 2 hours
+                        120,
                         24,
-                        "air-conditioner-repair"
+                        AC_REPAIR
                 ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        repairCategory.getId(),
-                        "Plumbing Leak Repair",
-                        "Emergency or scheduled repair of leaking pipes, faucets, toilets, and other plumbing fixtures",
-                        new BigDecimal("180.00"),
-                        90, // 1.5 hours
-                        12,
-                        "plumbing-leak-repair"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        repairCategory.getId(),
-                        "Electrical Outlet/Switch Repair",
-                        "Repair or replacement of malfunctioning electrical outlets, switches, and fixtures",
-                        new BigDecimal("120.00"),
-                        60, // 1 hour
-                        8,
-                        "electrical-outlet-switch-repair"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        repairCategory.getId(),
-                        "Water Heater Repair",
-                        "Troubleshooting and repair of water heater issues including heating elements, thermostats, and pilot lights",
-                        new BigDecimal("200.00"),
-                        120, // 2 hours
-                        12,
-                        "water-heater-repair"
-                ));
-                
-                defaultServiceItems.add(createServiceItem(
-                        repairCategory.getId(),
-                        "Drain Cleaning & Unclogging",
-                        "Professional drain cleaning service using advanced equipment to clear stubborn clogs and blockages",
-                        new BigDecimal("150.00"),
-                        90, // 1.5 hours
-                        8,
-                        "drain-cleaning-unclogging"
-                ));
-            }
 
-            // Save all service items
-            List<ServiceItem> savedItems = itemRepository.saveAll(defaultServiceItems);
-            
-            logger.info("Successfully initialized {} service items", savedItems.size());
-            savedItems.forEach(item -> 
-                logger.info("  - {} (ID: {}) - ${} - {} mins", 
-                    item.getName(), 
-                    item.getId(),
-                    item.getBasePrice(), 
-                    item.getEstimatedDuration().toMinutes())
-            );
-            
-            logger.info("==================== DATA INITIALIZATION COMPLETED ====================");
-            
+                // Additional INSTALLATION services
+                items.add(createServiceItem(
+                        categoryIds.get(INSTALLATION),
+                        "Smart Thermostat Installation",
+                        "Professional installation and configuration of a smart Wi‑Fi thermostat",
+                        new BigDecimal("180.00"),
+                        60,
+                        12,
+                        SMART_THERMOSTAT
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(INSTALLATION),
+                        "Ductless AC Installation",
+                        "Installation of wall-mounted ductless mini-split air conditioner units",
+                        new BigDecimal("2200.00"),
+                        420,
+                        48,
+                        DUCTLESS_INSTALL
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(INSTALLATION),
+                        "Furnace Installation",
+                        "High-efficiency gas or electric furnace installation",
+                        new BigDecimal("3000.00"),
+                        540,
+                        72,
+                        FURNACE_INSTALL
+                ));
+
+                // Additional MAINTENANCE services
+                items.add(createServiceItem(
+                        categoryIds.get(MAINTENANCE),
+                        "AC Tune-Up & Cleaning",
+                        "Comprehensive AC tune-up with coil, drain line, and component cleaning",
+                        new BigDecimal("120.00"),
+                        75,
+                        12,
+                        AC_TUNEUP
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(MAINTENANCE),
+                        "Duct Inspection & Cleaning",
+                        "Inspection and cleaning of HVAC air ducts to improve air quality",
+                        new BigDecimal("300.00"),
+                        180,
+                        48,
+                        DUCT_CLEANING
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(MAINTENANCE),
+                        "Filter Replacement Service",
+                        "Scheduled air filter inspection and replacement service",
+                        new BigDecimal("60.00"),
+                        30,
+                        24,
+                        FILTER_REPLACEMENT
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(MAINTENANCE),
+                        "Indoor Air Quality Audit",
+                        "Assessment of indoor air quality with recommendations for improvement",
+                        new BigDecimal("200.00"),
+                        120,
+                        48,
+                        INDOOR_AIR_QUALITY
+                ));
+
+                // Additional REPAIR services
+                items.add(createServiceItem(
+                        categoryIds.get(REPAIR),
+                        "Furnace Repair Service",
+                        "Diagnosis and repair of common furnace heating and ignition issues",
+                        new BigDecimal("280.00"),
+                        150,
+                        24,
+                        FURNACE_REPAIR
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(REPAIR),
+                        "Emergency HVAC Repair",
+                        "Priority emergency HVAC repair service during off-hours",
+                        new BigDecimal("400.00"),
+                        120,
+                        6,
+                        EMERGENCY_REPAIR
+                ));
+
+                items.add(createServiceItem(
+                        categoryIds.get(REPAIR),
+                        "Refrigerant Leak Detection & Repair",
+                        "Detection and repair of refrigerant leaks with recharging if required",
+                        new BigDecimal("320.00"),
+                        180,
+                        24,
+                        LEAK_REPAIR
+                ));
+
+                itemRepository.saveAll(items);
+
+                logger.info(INIT_END);
+
             } catch (Exception e) {
-                logger.error("==================== DATA INITIALIZATION FAILED ====================");
-                logger.error("Error during data initialization: {}", e.getMessage(), e);
-                throw e; // Re-throw to prevent application startup on critical errors
+                logger.error(INIT_FAILED, e);
+                throw new IllegalStateException(
+                        "Service data initialization failed", e);
             }
         };
     }
@@ -268,165 +288,74 @@ public class DataInitializationConfig {
             String categoryId,
             String name,
             String description,
-            BigDecimal basePrice,
-            long estimatedDurationMinutes,
+            BigDecimal price,
+            long minutes,
             int slaHours,
-            String imageKey) {
+            String imageKey
+    ) {
         return ServiceItem.builder()
                 .categoryId(categoryId)
                 .name(name)
                 .description(description)
-                .basePrice(basePrice)
-                .estimatedDuration(Duration.ofMinutes(estimatedDurationMinutes))
+                .basePrice(price)
+                .estimatedDuration(Duration.ofMinutes(minutes))
                 .slaHours(slaHours)
-                .images(createSampleImages(imageKey, name))
+                .images(images(imageKey, name))
                 .isActive(true)
                 .build();
     }
 
-    private List<ServiceItem.ServiceItemImage> createSampleImages(String key, String name) {
-        // Map service-specific images with appropriate stock photo URLs
+    private List<ServiceItem.ServiceItemImage> images(String key, String name) {
         return switch (key) {
-            case "hvac-system-installation" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800")
-                            .alt("Modern HVAC system installation with technician")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800")
-                            .alt("HVAC ductwork and air conditioning unit")
-                            .build()
+            case HVAC_INSTALL -> List.of(
+                    image(HVAC_INSTALL_IMAGE_URL, "HVAC system installation")
             );
-            case "water-heater-installation" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=800")
-                            .alt("Professional water heater installation")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800")
-                            .alt("Modern tankless water heater")
-                            .build()
+            case HVAC_MAINTENANCE -> List.of(
+                    image(HVAC_MAINTENANCE_IMAGE_URL, "HVAC seasonal maintenance")
             );
-            case "electrical-panel-installation" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800")
-                            .alt("Electrical panel with circuit breakers")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800")
-                            .alt("Technician working on electrical panel")
-                            .build()
+            case AC_REPAIR -> List.of(
+                    image(AC_REPAIR_IMAGE_URL, "Air conditioner repair service")
             );
-            case "smart-home-system-setup" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1558002038-1055907df827?w=800")
-                            .alt("Smart home automation control panel")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1585079542156-2755d9c8a094?w=800")
-                            .alt("Smart home devices and lighting control")
-                            .build()
+            case SMART_THERMOSTAT -> List.of(
+                    image(SMART_THERMOSTAT_IMAGE_URL, "Smart thermostat on wall")
             );
-            case "hvac-seasonal-maintenance" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://unsplash.com/photos/close-up-of-a-repairmans-hand-fixing-window-xqFquocCtvE?w=800")
-                            .alt("HVAC technician performing maintenance")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800")
-                            .alt("Air conditioning filter replacement")
-                            .build()
+            case AC_TUNEUP -> List.of(
+                    image(AC_TUNEUP_IMAGE_URL, "AC tune-up and cleaning")
             );
-            case "plumbing-system-inspection" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800")
-                            .alt("Plumber inspecting pipes and fixtures")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=800")
-                            .alt("Professional plumbing tools and inspection")
-                            .build()
+            case DUCT_CLEANING -> List.of(
+                    image(DUCT_CLEANING_IMAGE_URL, "HVAC duct cleaning")
             );
-            case "electrical-safety-inspection" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://unsplash.com/photos/apartment-fusebox-installation-by-caucasian-electrician-in-his-40s-residential-home-electric-system-theme-SCAZpCdVZk4?w=800")
-                            .alt("Electrician testing electrical outlets")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800")
-                            .alt("Electrical safety inspection equipment")
-                            .build()
+            case FILTER_REPLACEMENT -> List.of(
+                    image(FILTER_REPLACEMENT_IMAGE_URL, "AC filter replacement")
             );
-            case "appliance-tune-up-service" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800")
-                            .alt("Technician servicing kitchen appliances")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?w=800")
-                            .alt("Modern kitchen appliances maintenance")
-                            .build()
+            case INDOOR_AIR_QUALITY -> List.of(
+                    image(INDOOR_AIR_QUALITY_IMAGE_URL, "Indoor air quality assessment")
             );
-            case "air-conditioner-repair" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://unsplash.com/photos/rear-view-of-a-man-cleaning-air-conditioning-system-HsNtqUNWOqk?w=800")
-                            .alt("Technician repairing air conditioning unit")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1604754742629-3e694021c0ac?w=800")
-                            .alt("Air conditioner compressor repair")
-                            .build()
+            case FURNACE_INSTALL -> List.of(
+                    image(FURNACE_INSTALL_IMAGE_URL, "Furnace installation")
             );
-            case "plumbing-leak-repair" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=800")
-                            .alt("Plumber fixing leaking pipe")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800")
-                            .alt("Leak repair tools and equipment")
-                            .build()
+            case DUCTLESS_INSTALL -> List.of(
+                    image(DUCTLESS_INSTALL_IMAGE_URL, "Ductless AC installation")
             );
-            case "electrical-outlet-switch-repair" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://unsplash.com/photos/a-person-is-holding-a-piece-of-electrical-equipment-NC5XIqIZEbk?w=800")
-                            .alt("Electrician replacing outlet")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800")
-                            .alt("Electrical switch and outlet repair")
-                            .build()
+            case FURNACE_REPAIR -> List.of(
+                    image(FURNACE_REPAIR_IMAGE_URL, "Furnace repair service")
             );
-            case "water-heater-repair" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800")
-                            .alt("Water heater repair and maintenance")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=800")
-                            .alt("Technician fixing water heater thermostat")
-                            .build()
+            case EMERGENCY_REPAIR -> List.of(
+                    image(EMERGENCY_REPAIR_IMAGE_URL, "Emergency HVAC repair")
             );
-            case "drain-cleaning-unclogging" -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800")
-                            .alt("Professional drain cleaning service")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=800")
-                            .alt("Drain unclogging equipment and tools")
-                            .build()
+            case LEAK_REPAIR -> List.of(
+                    image(LEAK_REPAIR_IMAGE_URL, "Refrigerant leak repair")
             );
             default -> List.of(
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800")
-                            .alt(name + " - professional service")
-                            .build(),
-                    ServiceItem.ServiceItemImage.builder()
-                            .url("https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800")
-                            .alt(name + " - quality workmanship")
-                            .build()
+                    image(DEFAULT_SERVICE_IMAGE_URL, name + " service")
             );
         };
+    }
+
+    private ServiceItem.ServiceItemImage image(String url, String alt) {
+        return ServiceItem.ServiceItemImage.builder()
+                .url(url)
+                .alt(alt)
+                .build();
     }
 }

@@ -29,7 +29,7 @@ public class SecurityConfiguration {
                         CorsConfigurationSource corsConfigurationSource) {
 
                 http
-                                .csrf(CsrfSpec::disable)
+                                .csrf(CsrfSpec::disable)// Safe: Stateless REST API using JWT (no cookies)
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)

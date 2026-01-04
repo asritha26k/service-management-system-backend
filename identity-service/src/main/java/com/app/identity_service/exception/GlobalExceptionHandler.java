@@ -14,158 +14,136 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.HashMap;
 import java.util.Map;
 
-// Global Exception Handler
-// Handles all exceptions across the application
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
-			ResourceNotFoundException ex, WebRequest request) {
-		log.warn("Resource not found: {}", ex.getMessage());
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.NOT_FOUND.value(),
-			"Not Found",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-	}
+    private static final String ERROR_CONFLICT = "Conflict";
+    private static final String ERROR_BAD_REQUEST = "Bad Request";
+    private static final String ERROR_UNAUTHORIZED = "Unauthorized";
+    private static final String ERROR_NOT_FOUND = "Not Found";
+    private static final String ERROR_INTERNAL = "Internal Server Error";
 
-	@ExceptionHandler(InvalidCredentialsException.class)
-	public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(
-			InvalidCredentialsException ex, WebRequest request) {
-		log.warn("Invalid credentials provided for authentication");
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.UNAUTHORIZED.value(),
-			"Unauthorized",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
-	}
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, WebRequest request) {
 
-	@ExceptionHandler(InvalidTokenException.class)
-	public ResponseEntity<ErrorResponse> handleInvalidTokenException(
-			InvalidTokenException ex, WebRequest request) {
-		log.warn("Invalid or expired token: {}", ex.getMessage());
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.UNAUTHORIZED.value(),
-			"Unauthorized",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
-	}
+        log.warn("Resource not found: {}", ex.getMessage());
+        return buildError(HttpStatus.NOT_FOUND, ERROR_NOT_FOUND, ex.getMessage(), request);
+    }
 
-	@ExceptionHandler(DuplicateResourceException.class)
-	public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
-			DuplicateResourceException ex, WebRequest request) {
-		log.warn("Duplicate resource conflict: {}", ex.getMessage());
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.CONFLICT.value(),
-			"Conflict",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.CONFLICT);
-	}
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(
+            InvalidCredentialsException ex, WebRequest request) {
 
-	@ExceptionHandler(DuplicateProfileException.class)
-	public ResponseEntity<ErrorResponse> handleDuplicateProfileException(
-			DuplicateProfileException ex, WebRequest request) {
-		log.warn("Duplicate profile conflict: {}", ex.getMessage());
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.CONFLICT.value(),
-			"Conflict",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.CONFLICT);
-	}
+        log.warn("Invalid credentials provided");
+        return buildError(HttpStatus.UNAUTHORIZED, ERROR_UNAUTHORIZED, ex.getMessage(), request);
+    }
 
-	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-			IllegalArgumentException ex, WebRequest request) {
-		log.warn("Illegal argument: {}", ex.getMessage());
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.BAD_REQUEST.value(),
-			"Bad Request",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-	}
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTokenException(
+            InvalidTokenException ex, WebRequest request) {
 
-	@ExceptionHandler(IllegalStateException.class)
-	public ResponseEntity<ErrorResponse> handleIllegalStateException(
-			IllegalStateException ex, WebRequest request) {
-		log.warn("Illegal state: {}", ex.getMessage());
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.CONFLICT.value(),
-			"Conflict",
-			ex.getMessage(),
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.CONFLICT);
-	}
+        log.warn("Invalid or expired token");
+        return buildError(HttpStatus.UNAUTHORIZED, ERROR_UNAUTHORIZED, ex.getMessage(), request);
+    }
 
-	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
-	public ResponseEntity<ErrorResponse> handleTypeMismatch(
-			MethodArgumentTypeMismatchException ex, WebRequest request) {
-		String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
-			ex.getValue(), ex.getName(), ex.getRequiredType().getSimpleName());
-		log.warn(message);
-		ErrorResponse error = new ErrorResponse(
-			HttpStatus.BAD_REQUEST.value(),
-			"Bad Request",
-			message,
-			request.getDescription(false).replace("uri=", "")
-		);
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-	}
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
+            DuplicateResourceException ex, WebRequest request) {
 
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Map<String, Object>> handleValidationException(
-			MethodArgumentNotValidException ex, WebRequest request) {
-		log.warn("Validation failed for request: {}", ex.getBindingResult().getObjectName());
-		Map<String, Object> body = new HashMap<>();
-		Map<String, String> errors = new HashMap<>();
+        log.warn("Duplicate resource: {}", ex.getMessage());
+        return buildError(HttpStatus.CONFLICT, ERROR_CONFLICT, ex.getMessage(), request);
+    }
 
-		ex.getBindingResult().getAllErrors().forEach(error -> {
-			String fieldName = ((FieldError) error).getField();
-			String errorMessage = error.getDefaultMessage();
-			errors.put(fieldName, errorMessage);
-			log.warn("Validation error on field '{}': {}", fieldName, errorMessage);
-		});
+    @ExceptionHandler(DuplicateProfileException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateProfileException(
+            DuplicateProfileException ex, WebRequest request) {
 
-		body.put("timestamp", java.time.LocalDateTime.now().toString());
-		body.put("status", HttpStatus.BAD_REQUEST.value());
-		body.put("error", "Validation Failed");
-		body.put("errors", errors);
-		body.put("path", request.getDescription(false).replace("uri=", ""));
+        log.warn("Duplicate profile: {}", ex.getMessage());
+        return buildError(HttpStatus.CONFLICT, ERROR_CONFLICT, ex.getMessage(), request);
+    }
 
-		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-	}
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex, WebRequest request) {
+
+        log.warn("Illegal argument: {}", ex.getMessage());
+        return buildError(HttpStatus.BAD_REQUEST, ERROR_BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(
+            IllegalStateException ex, WebRequest request) {
+
+        log.warn("Illegal state: {}", ex.getMessage());
+        return buildError(HttpStatus.CONFLICT, ERROR_CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex, WebRequest request) {
+
+        String message = String.format(
+                "Invalid value '%s' for parameter '%s'. Expected type: %s",
+                ex.getValue(),
+                ex.getName(),
+                ex.getRequiredType().getSimpleName()
+        );
+
+        log.warn(message);
+        return buildError(HttpStatus.BAD_REQUEST, ERROR_BAD_REQUEST, message, request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationException(
+            MethodArgumentNotValidException ex, WebRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String field = ((FieldError) error).getField();
+            errors.put(field, error.getDefaultMessage());
+        });
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", java.time.LocalDateTime.now().toString());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Validation Failed");
+        body.put("errors", errors);
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex, WebRequest request) {
-		log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
 
-        if (ex.getCause() instanceof InvalidCredentialsException invalidCredentialsException) {
-            return handleInvalidCredentialsException(invalidCredentialsException, request);
-        }
+        log.error("Unexpected error occurred", ex);
 
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
+        return buildError(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ERROR_INTERNAL,
                 "An unexpected error occurred. Please contact support.",
+                request
+        );
+    }
+
+    private ResponseEntity<ErrorResponse> buildError(
+            HttpStatus status,
+            String error,
+            String message,
+            WebRequest request) {
+
+        ErrorResponse response = new ErrorResponse(
+                status.value(),
+                error,
+                message,
                 request.getDescription(false).replace("uri=", "")
         );
 
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(response, status);
     }
 }

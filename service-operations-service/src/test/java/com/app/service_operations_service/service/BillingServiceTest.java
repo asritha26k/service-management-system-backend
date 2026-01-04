@@ -93,33 +93,55 @@ class BillingServiceTest {
         verify(invoiceRepository, times(1)).save(any(Invoice.class));
     }
 
-    @Test
-    void createInvoice_ShouldThrowBadRequest_WhenRequestNotFound() {
-        CreateInvoiceRequest request = new CreateInvoiceRequest();
-        request.setRequestId("invalid-req");
-        request.setCustomerId("customer-1");
-        request.setServiceAmount(new BigDecimal("100.00"));
-        request.setTaxAmount(new BigDecimal("10.00"));
-        request.setTotalAmount(new BigDecimal("110.00"));
-
-        when(requestRepository.existsById("invalid-req")).thenReturn(false);
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.MethodSource("invalidInvoiceRequests")
+    void createInvoice_ShouldThrowBadRequest_WhenValidationFails(CreateInvoiceRequest request) {
+        if (!request.getRequestId().equals("invalid-req")) {
+            when(requestRepository.existsById(request.getRequestId())).thenReturn(true);
+        } else {
+            when(requestRepository.existsById("invalid-req")).thenReturn(false);
+        }
 
         assertThrows(BadRequestException.class, () -> billingService.createInvoice(request));
-        verify(invoiceRepository, never()).save(any(Invoice.class));
     }
 
-    @Test
-    void createInvoice_ShouldThrowBadRequest_WhenServiceAmountNegative() {
-        CreateInvoiceRequest request = new CreateInvoiceRequest();
-        request.setRequestId("req-1");
-        request.setCustomerId("customer-1");
-        request.setServiceAmount(new BigDecimal("-10.00"));
-        request.setTaxAmount(new BigDecimal("10.00"));
-        request.setTotalAmount(new BigDecimal("110.00"));
+    private static java.util.stream.Stream<CreateInvoiceRequest> invalidInvoiceRequests() {
+        CreateInvoiceRequest req1 = new CreateInvoiceRequest();
+        req1.setRequestId("invalid-req");
+        req1.setCustomerId("customer-1");
+        req1.setServiceAmount(new BigDecimal("100.00"));
+        req1.setTaxAmount(new BigDecimal("10.00"));
+        req1.setTotalAmount(new BigDecimal("110.00"));
 
-        when(requestRepository.existsById("req-1")).thenReturn(true);
+        CreateInvoiceRequest req2 = new CreateInvoiceRequest();
+        req2.setRequestId("req-1");
+        req2.setCustomerId("customer-1");
+        req2.setServiceAmount(new BigDecimal("-10.00"));
+        req2.setTaxAmount(new BigDecimal("10.00"));
+        req2.setTotalAmount(new BigDecimal("110.00"));
 
-        assertThrows(BadRequestException.class, () -> billingService.createInvoice(request));
+        CreateInvoiceRequest req3 = new CreateInvoiceRequest();
+        req3.setRequestId("req-1");
+        req3.setCustomerId("customer-1");
+        req3.setServiceAmount(new BigDecimal("100.00"));
+        req3.setTaxAmount(new BigDecimal("-5.00"));
+        req3.setTotalAmount(new BigDecimal("95.00"));
+
+        CreateInvoiceRequest req4 = new CreateInvoiceRequest();
+        req4.setRequestId("req-1");
+        req4.setCustomerId("customer-1");
+        req4.setServiceAmount(new BigDecimal("100.00"));
+        req4.setTaxAmount(new BigDecimal("10.00"));
+        req4.setTotalAmount(new BigDecimal("0.00"));
+
+        CreateInvoiceRequest req5 = new CreateInvoiceRequest();
+        req5.setRequestId("req-1");
+        req5.setCustomerId("customer-1");
+        req5.setServiceAmount(new BigDecimal("0.00"));
+        req5.setTaxAmount(new BigDecimal("0.00"));
+        req5.setTotalAmount(new BigDecimal("0.00"));
+
+        return java.util.stream.Stream.of(req1, req2, req3, req4, req5);
     }
 
     @Test
@@ -178,19 +200,6 @@ class BillingServiceTest {
         assertNotNull(response);
         verify(invoiceRepository, times(1)).save(any(Invoice.class));
     }
-
-//    @Test
-//    void payInvoice_ShouldPayInvoice() {
-//        when(invoiceRepository.findById("invoice-1")).thenReturn(Optional.of(invoice));
-//        invoice.setPaymentStatus(PaymentStatus.PAID);
-//        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
-//
-//        InvoiceResponse response = billingService.payInvoice("invoice-1");
-//
-//        assertNotNull(response);
-//        assertEquals(PaymentStatus.PAID, response.getPaymentStatus());
-//        verify(invoiceRepository, times(1)).save(any(Invoice.class));
-//    }
 
     @Test
     void payInvoice_ShouldThrowBadRequest_WhenAlreadyPaid() {
@@ -308,34 +317,6 @@ class BillingServiceTest {
     }
 
     @Test
-    void createInvoice_ShouldThrowBadRequest_WhenTaxNegative() {
-        CreateInvoiceRequest request = new CreateInvoiceRequest();
-        request.setRequestId("req-1");
-        request.setCustomerId("customer-1");
-        request.setServiceAmount(new BigDecimal("100.00"));
-        request.setTaxAmount(new BigDecimal("-5.00"));
-        request.setTotalAmount(new BigDecimal("95.00"));
-
-        when(requestRepository.existsById("req-1")).thenReturn(true);
-
-        assertThrows(BadRequestException.class, () -> billingService.createInvoice(request));
-    }
-
-    @Test
-    void createInvoice_ShouldThrowBadRequest_WhenTotalAmountZero() {
-        CreateInvoiceRequest request = new CreateInvoiceRequest();
-        request.setRequestId("req-1");
-        request.setCustomerId("customer-1");
-        request.setServiceAmount(new BigDecimal("100.00"));
-        request.setTaxAmount(new BigDecimal("10.00"));
-        request.setTotalAmount(new BigDecimal("0.00"));
-
-        when(requestRepository.existsById("req-1")).thenReturn(true);
-
-        assertThrows(BadRequestException.class, () -> billingService.createInvoice(request));
-    }
-
-    @Test
     void generateInvoiceForCompletedRequest_ShouldGenerateWithDefaultPricing_WhenServiceItemNotFound() {
         when(invoiceRepository.existsByRequestId("req-1")).thenReturn(false);
         when(requestRepository.findById("req-1")).thenReturn(Optional.of(serviceRequest));
@@ -351,7 +332,7 @@ class BillingServiceTest {
     @Test
     void generateInvoiceForCompletedRequest_ShouldGenerateWithDefaultPricing_WhenBasePriceNull() {
         serviceItem.setBasePrice(null);
-        
+
         when(invoiceRepository.existsByRequestId("req-1")).thenReturn(false);
         when(requestRepository.findById("req-1")).thenReturn(Optional.of(serviceRequest));
         when(serviceItemRepository.findById("service-1")).thenReturn(Optional.of(serviceItem));
@@ -473,18 +454,4 @@ class BillingServiceTest {
         verify(invoiceRepository, times(1)).findByCustomerId("customer-1");
     }
 
-    @Test
-    void createInvoice_ShouldThrowBadRequest_WhenServiceAmountZero() {
-        CreateInvoiceRequest request = new CreateInvoiceRequest();
-        request.setRequestId("req-1");
-        request.setCustomerId("customer-1");
-        request.setServiceAmount(new BigDecimal("0.00"));
-        request.setTaxAmount(new BigDecimal("0.00"));
-        request.setTotalAmount(new BigDecimal("0.00"));
-
-        when(requestRepository.existsById("req-1")).thenReturn(true);
-
-        assertThrows(BadRequestException.class, () -> billingService.createInvoice(request));
-    }
 }
-

@@ -3,6 +3,9 @@ package com.app.service_operations_service.util;
 import com.app.service_operations_service.exception.BadRequestException;
 
 public class ValidationUtil {
+    private ValidationUtil() {
+        // Utility class
+    }
 
     public static void validateNotNull(Object value, String fieldName) {
         if (value == null) {

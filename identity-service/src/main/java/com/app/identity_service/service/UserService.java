@@ -9,7 +9,6 @@ import com.app.identity_service.entity.UserRole;
 import com.app.identity_service.exception.ResourceNotFoundException;
 import com.app.identity_service.repository.UserAuthRepository;
 import com.app.identity_service.repository.UserProfileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,11 +20,16 @@ import java.util.List;
 @Transactional
 public class UserService {
 
-    @Autowired
-    private UserAuthRepository userAuthRepository;
+    private final UserAuthRepository userAuthRepository;
     
-    @Autowired
-    private UserProfileRepository userProfileRepository;
+    private final UserProfileRepository userProfileRepository;
+
+    public UserService(
+            UserAuthRepository userAuthRepository,
+            UserProfileRepository userProfileRepository) {
+        this.userAuthRepository = userAuthRepository;
+        this.userProfileRepository = userProfileRepository;
+    }
 
     public List<UserAuthResponse> getUsersByRole(String role) {
         try {

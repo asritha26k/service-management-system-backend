@@ -1,6 +1,5 @@
 package com.app.identity_service.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,13 +27,18 @@ public class UserProfileController {
 
 	private static final Logger log = LoggerFactory.getLogger(UserProfileController.class);
 
-	@Autowired
-	private UserProfileService userProfileService;
+	private final UserProfileService userProfileService;
 
-	@Autowired
-	private SecurityUtil securityUtil;
+	private final SecurityUtil securityUtil;
 
-	//creates user profile endpoints
+	public UserProfileController(
+			UserProfileService userProfileService,
+			SecurityUtil securityUtil) {
+		this.userProfileService = userProfileService;
+		this.securityUtil = securityUtil;
+	}
+
+	// creates user profile endpoints
 	@PostMapping
 	public ResponseEntity<IdMessageResponse> createProfile(@Valid @RequestBody UpdateUserProfileRequest request) {
 		String userId = securityUtil.extractUserIdFromContext();
@@ -42,27 +46,26 @@ public class UserProfileController {
 			log.warn("Create profile attempted without authentication");
 			throw new IllegalArgumentException("User authentication is required");
 		}
-		log.info("Creating user profile for user: {}", userId);
+		log.info("Creating user profile");
 		UserProfileResponse response = userProfileService.createProfile(userId, request);
-		log.info("User profile created successfully for: {}", userId);
+		log.info("User profile created successfully");
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(new IdMessageResponse(response.getUserId(), "User profile created successfully"));
+				.body(new IdMessageResponse(response.getUserId(), "User profile created successfully"));
 	}
 
-	//get user profile endpoint
+	// get user profile endpoint
 	@GetMapping("/{userId}")
 	public ResponseEntity<UserProfileResponse> getProfileByUserId(@PathVariable("userId") String userId) {
 		if (userId == null || userId.isBlank()) {
 			log.warn("Get profile attempted with invalid user ID");
 			throw new IllegalArgumentException("User ID is required");
 		}
-		log.debug("Fetching user profile for: {}", userId);
+		log.debug("Fetching user profile");
 		UserProfileResponse response = userProfileService.getProfileByUserId(userId);
 		return ResponseEntity.ok(response);
 	}
 
-	
-	 // Get own profile (self-service - extracts userId from JWT token) 
+	// Get own profile (self-service - extracts userId from JWT token)
 	@GetMapping
 	public ResponseEntity<UserProfileResponse> getMyProfile() {
 		String userId = securityUtil.extractUserIdFromContext();
@@ -70,13 +73,12 @@ public class UserProfileController {
 			log.warn("Get own profile attempted without authentication");
 			throw new IllegalArgumentException("User authentication is required");
 		}
-		log.debug("Fetching own profile for user: {}", userId);
+		log.debug("Fetching own profile");
 		UserProfileResponse response = userProfileService.getProfileByUserId(userId);
 		return ResponseEntity.ok(response);
 	}
 
-
-	 //Update user profile (admin/manager can update any user)
+	// Update user profile (admin/manager can update any user)
 
 	@PutMapping("/{userId}")
 	public ResponseEntity<Void> updateProfile(
@@ -86,15 +88,12 @@ public class UserProfileController {
 			log.warn("Update profile attempted with invalid user ID");
 			throw new IllegalArgumentException("User ID is required");
 		}
-		log.info("Updating user profile for: {}", userId);
 		userProfileService.updateProfile(userId, request);
-		log.info("User profile updated successfully for: {}", userId);
 		return ResponseEntity.noContent().build();
 	}
 
-	
-	 // Update own profile (self-service - extracts userId from JWT token)
-	 
+	// Update own profile (self-service - extracts userId from JWT token)
+
 	@PutMapping
 	public ResponseEntity<Void> updateMyProfile(
 			@Valid @RequestBody UpdateUserProfileRequest request) {

@@ -20,116 +20,114 @@ import com.app.notification_service.dto.NotificationRequest;
 import com.app.notification_service.dto.NotificationResponse;
 import com.app.notification_service.entity.Notification;
 import com.app.notification_service.exception.BadRequestException;
-import com.app.notification_service.exception.NotificationFetchException;
 import com.app.notification_service.security.RequestUser;
 import com.app.notification_service.service.NotificationService;
 
 import jakarta.validation.Valid;
 import org.springframework.web.server.ResponseStatusException;
 
-// Notification Controller
-// Handles all notification-related API endpoints
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
+
     private final NotificationService notificationService;
 
     public NotificationController(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    // Send a notification to a user
     @PostMapping("/send")
-    public ResponseEntity<IdMessageResponse> sendNotification(@Valid @RequestBody NotificationRequest request) {
-        log.info("POST /api/notifications/send - Sending notification for userId: {}", request.getUserId());
-        log.debug("Notification type: {}, subject: {}", request.getType(), request.getSubject());
+    public ResponseEntity<IdMessageResponse> sendNotification(
+            @Valid @RequestBody NotificationRequest request) {
+
+        log.info("POST /api/notifications/send - Sending notification");
+
         NotificationResponse response = notificationService.sendNotification(request);
+
         log.info("Notification sent successfully with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new IdMessageResponse(response.getId(), "Notification sent successfully"));
+                .body(new IdMessageResponse(response.getId(), "Notification sent successfully"));
     }
 
-    // Send login credentials to a user via email
     @PostMapping("/send-credentials")
-    public ResponseEntity<Void> sendCredentialEmail(@Valid @RequestBody LoginCredentialsRequest request) {
-        log.info("POST /api/notifications/send-credentials - Sending credentials for email: {}", request.getEmail());
-        log.debug("Role: {}", request.getRole());
+    public ResponseEntity<Void> sendCredentialEmail(
+            @Valid @RequestBody LoginCredentialsRequest request) {
+
+        log.info("POST /api/notifications/send-credentials - Sending credentials");
+
         notificationService.sendCredentialEmail(request);
-        log.info("Credentials email sent successfully to: {}", request.getEmail());
+
+        log.info("Credentials email sent successfully");
         return ResponseEntity.accepted().build();
     }
 
-    // Get notifications for the authenticated user
     @GetMapping("/user")
     public ResponseEntity<List<NotificationResponse>> getUserNotifications(RequestUser user) {
-        try {
-            String userId = validateAndGetUserId(user);
-            log.info("GET /api/notifications/user - Fetching notifications for userId: {}", userId);
-            List<NotificationResponse> notifications =
-                    notificationService.getNotificationsForUser(userId);
-            log.info("Successfully retrieved {} notifications for user: {}", notifications.size(), userId);
-            return ResponseEntity.ok(notifications);
 
-        } catch (BadRequestException e) {
-            log.warn("Bad request when fetching notifications: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Unexpected error fetching notifications for user: {}", e.getMessage(), e);
-            throw new NotificationFetchException(
-                    "Error fetching notifications: " + e.getMessage(), e
-            );
-        }
+        String userId = validateAndGetUserId(user);
+
+        log.info("GET /api/notifications/user - Fetching notifications");
+
+        List<NotificationResponse> notifications =
+                notificationService.getNotificationsForUser(userId);
+
+        log.info("Successfully retrieved {} notifications", notifications.size());
+        return ResponseEntity.ok(notifications);
     }
 
-    // Debug endpoint to fetch all notifications in the system
     @GetMapping("/debug/all")
     public ResponseEntity<List<NotificationResponse>> getAllNotifications() {
+
         log.info("GET /api/notifications/debug/all - Fetching all notifications (DEBUG)");
-        List<Notification> allNotifications = notificationService.getAllNotificationsDebug();
+
+        List<Notification> allNotifications =
+                notificationService.getAllNotificationsDebug();
+
         log.info("Total notifications in system: {}", allNotifications.size());
-        allNotifications.forEach(n -> log.debug("  - id: {}, userId: '{}', subject: {}", n.getId(), n.getUserId(), n.getSubject()));
-        return ResponseEntity.ok(allNotifications.stream().map(this::mapToResponse).toList());
+
+        allNotifications.forEach(n ->
+                log.debug("  - id: {}, userId: '{}', subject: {}",
+                        n.getId(), n.getUserId(), n.getSubject()));
+
+        return ResponseEntity.ok(
+                allNotifications.stream().map(this::mapToResponse).toList()
+        );
     }
 
-    // Mark a notification as read by ID
     @PutMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(@PathVariable("id") String id) {
 
         if (id == null || id.isBlank()) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Notification id must not be empty"
-            );
+                    "Notification id must not be empty");
         }
 
         notificationService.markAsRead(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Helper method to validate and extract user ID from RequestUser
-    // @param user RequestUser object containing the user ID
-    // @return validated userId
-    // @throws BadRequestException if user ID is missing or blank
     private String validateAndGetUserId(RequestUser user) {
+
         if (user == null) {
             log.warn("RequestUser is null");
             throw new BadRequestException("User authentication is required");
         }
-        
+
         String userId = user.userId();
         if (userId == null || userId.isBlank()) {
             log.warn("User ID is missing or blank");
             throw new BadRequestException("User ID is required");
         }
-        
+
         log.debug("User ID validated: {}", userId);
         return userId;
     }
 
-    // Convert Notification entity to NotificationResponse DTO
     private NotificationResponse mapToResponse(Notification notification) {
+
         NotificationResponse response = new NotificationResponse();
         response.setId(notification.getId());
         response.setUserId(notification.getUserId());

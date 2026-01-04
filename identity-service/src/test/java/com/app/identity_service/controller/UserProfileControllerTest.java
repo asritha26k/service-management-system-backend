@@ -1,6 +1,5 @@
 package com.app.identity_service.controller;
 
-import com.app.identity_service.dto.IdMessageResponse;
 import com.app.identity_service.dto.UpdateUserProfileRequest;
 import com.app.identity_service.dto.UserProfileResponse;
 import com.app.identity_service.exception.GlobalExceptionHandler;
@@ -29,22 +28,22 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = UserProfileController.class, excludeAutoConfiguration = {
-    EurekaClientAutoConfiguration.class,
-    SecurityAutoConfiguration.class
+        EurekaClientAutoConfiguration.class,
+        SecurityAutoConfiguration.class
 })
 @AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 @TestPropertySource(properties = {
-    "logging.level.root=INFO",
-    "logging.level.com.app.identity_service=INFO",
+        "logging.level.root=INFO",
+        "logging.level.com.app.identity_service=INFO",
         "spring.cloud.config.enabled=false",
         "spring.cloud.config.import-check.enabled=false",
-    "spring.application.name=identity-service-test",
-    "server.port=0",
-    "LOG_LEVEL_ROOT=INFO",
-    "LOG_LEVEL_APP=INFO",
-    "SPRING_APPLICATION_NAME=identity-service-test",
-    "SERVER_PORT=0"
+        "spring.application.name=identity-service-test",
+        "server.port=0",
+        "LOG_LEVEL_ROOT=INFO",
+        "LOG_LEVEL_APP=INFO",
+        "SPRING_APPLICATION_NAME=identity-service-test",
+        "SERVER_PORT=0"
 })
 class UserProfileControllerTest {
 
@@ -98,8 +97,8 @@ class UserProfileControllerTest {
                 .thenReturn(profileResponse);
 
         mockMvc.perform(post("/api/users/profile")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("user-1"))
                 .andExpect(jsonPath("$.message").value("User profile created successfully"));
@@ -110,8 +109,8 @@ class UserProfileControllerTest {
         when(securityUtil.extractUserIdFromContext()).thenReturn(null);
 
         mockMvc.perform(post("/api/users/profile")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -159,16 +158,16 @@ class UserProfileControllerTest {
                 .thenReturn(profileResponse);
 
         mockMvc.perform(put("/api/users/profile/user-1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void updateProfile_ShouldReturnBadRequest_WhenUserIdIsBlank() throws Exception {
         mockMvc.perform(put("/api/users/profile/ ")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -179,8 +178,8 @@ class UserProfileControllerTest {
                 .thenReturn(profileResponse);
 
         mockMvc.perform(put("/api/users/profile")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isNoContent());
     }
 
@@ -189,9 +188,8 @@ class UserProfileControllerTest {
         when(securityUtil.extractUserIdFromContext()).thenReturn(null);
 
         mockMvc.perform(put("/api/users/profile")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(profileRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(profileRequest)))
                 .andExpect(status().isBadRequest());
     }
 }
-

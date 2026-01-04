@@ -38,7 +38,6 @@ public class NotificationEventListener {
             return;
         }
 
-
         if (event.getRecipientEmail() == null || event.getRecipientEmail().isBlank()) {
             log.warn("Missing recipient email for notification event {}", event.getNotificationId());
             return;
@@ -58,11 +57,12 @@ public class NotificationEventListener {
             mailSender.send(mailMessage);
 
             emailLog.setStatus(EmailStatus.SENT);
-            log.info("Email sent to {} for notification {}", event.getRecipientEmail(), event.getNotificationId());
+            log.info("Email sent for notification {}", event.getNotificationId());
         } catch (MailException ex) {
             emailLog.setStatus(EmailStatus.FAILED);
             emailLog.setErrorMessage(ex.getMessage());
-            log.error("Failed to send email to {}: {}", event.getRecipientEmail(), ex.getMessage());
+            log.error("Failed to send email to {} for notification {}: {}", 
+                event.getRecipientEmail(), event.getNotificationId(), ex.getMessage(), ex);
         }
 
         emailLogRepository.save(emailLog);

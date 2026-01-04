@@ -80,8 +80,7 @@ class UserServiceTest {
 
     @Test
     void getUsersByRole_ShouldThrowIllegalArgumentException_WhenInvalidRole() {
-        assertThrows(IllegalArgumentException.class, () -> 
-            userService.getUsersByRole("INVALID_ROLE"));
+        assertThrows(IllegalArgumentException.class, () -> userService.getUsersByRole("INVALID_ROLE"));
     }
 
     @Test
@@ -93,7 +92,7 @@ class UserServiceTest {
         user1.setIsActive(true);
         user1.setIsEmailVerified(true);
         user1.setForcePasswordChange(false);
-        
+
         UserAuth user2 = new UserAuth();
         user2.setId("user-2");
         user2.setEmail("user2@test.com");
@@ -131,7 +130,7 @@ class UserServiceTest {
         user1.setIsActive(true);
         user1.setIsEmailVerified(true);
         user1.setForcePasswordChange(false);
-        
+
         when(userAuthRepository.findAll()).thenReturn(Arrays.asList(user1));
 
         List<UserAuthResponse> responses = userService.searchUsersByEmail("user");
@@ -156,8 +155,7 @@ class UserServiceTest {
     void getUserById_ShouldThrowResourceNotFoundException_WhenNotFound() {
         when(userAuthRepository.findById("invalid-id")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> 
-            userService.getUserById("invalid-id"));
+        assertThrows(ResourceNotFoundException.class, () -> userService.getUserById("invalid-id"));
     }
 
     @Test
@@ -176,8 +174,7 @@ class UserServiceTest {
     void getUserByEmail_ShouldThrowResourceNotFoundException_WhenNotFound() {
         when(userAuthRepository.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> 
-            userService.getUserByEmail("invalid@example.com"));
+        assertThrows(ResourceNotFoundException.class, () -> userService.getUserByEmail("invalid@example.com"));
     }
 
     @Test
@@ -195,8 +192,7 @@ class UserServiceTest {
     void deactivateUser_ShouldThrowResourceNotFoundException_WhenNotFound() {
         when(userAuthRepository.findById("invalid-id")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> 
-            userService.deactivateUser("invalid-id"));
+        assertThrows(ResourceNotFoundException.class, () -> userService.deactivateUser("invalid-id"));
     }
 
     @Test
@@ -215,19 +211,19 @@ class UserServiceTest {
     void activateUser_ShouldThrowResourceNotFoundException_WhenNotFound() {
         when(userAuthRepository.findById("invalid-id")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> 
-            userService.activateUser("invalid-id"));
+        assertThrows(ResourceNotFoundException.class, () -> userService.activateUser("invalid-id"));
     }
 
     @Test
     void getUsersWithDetailsByRole_ShouldReturnPagedResponse() {
         List<UserAuth> users = Arrays.asList(userAuth);
         Page<UserAuth> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
-        
+
         when(userAuthRepository.findByRole(eq(UserRole.CUSTOMER), any(Pageable.class))).thenReturn(userPage);
         when(userProfileRepository.findByUserId("user-1")).thenReturn(Optional.of(userProfile));
 
-        PagedResponse<UserDetailResponse> response = userService.getUsersWithDetailsByRole("CUSTOMER", PageRequest.of(0, 10));
+        PagedResponse<UserDetailResponse> response = userService.getUsersWithDetailsByRole("CUSTOMER",
+                PageRequest.of(0, 10));
 
         assertNotNull(response);
         assertEquals(1, response.getContent().size());
@@ -236,37 +232,39 @@ class UserServiceTest {
         assertEquals(1, response.getTotalElements());
         assertEquals(1, response.getTotalPages());
         assertTrue(response.isLast());
-        
+
         UserDetailResponse userDetail = response.getContent().get(0);
         assertEquals("user-1", userDetail.getId());
         assertEquals("user@example.com", userDetail.getEmail());
         assertEquals("CUSTOMER", userDetail.getRole());
         assertEquals("Test User", userDetail.getName());
         assertEquals("1234567890", userDetail.getPhone());
-        
+
         verify(userAuthRepository, times(1)).findByRole(eq(UserRole.CUSTOMER), any(Pageable.class));
         verify(userProfileRepository, times(1)).findByUserId("user-1");
     }
 
     @Test
     void getUsersWithDetailsByRole_ShouldThrowIllegalArgumentException_WhenInvalidRole() {
-        assertThrows(IllegalArgumentException.class, () -> 
-            userService.getUsersWithDetailsByRole("INVALID_ROLE", PageRequest.of(0, 10)));
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.getUsersWithDetailsByRole("INVALID_ROLE", pageable));
     }
 
     @Test
     void getUsersWithDetailsByRole_ShouldHandleUserWithoutProfile() {
         List<UserAuth> users = Arrays.asList(userAuth);
         Page<UserAuth> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
-        
+
         when(userAuthRepository.findByRole(eq(UserRole.CUSTOMER), any(Pageable.class))).thenReturn(userPage);
         when(userProfileRepository.findByUserId("user-1")).thenReturn(Optional.empty());
 
-        PagedResponse<UserDetailResponse> response = userService.getUsersWithDetailsByRole("CUSTOMER", PageRequest.of(0, 10));
+        PagedResponse<UserDetailResponse> response = userService.getUsersWithDetailsByRole("CUSTOMER",
+                PageRequest.of(0, 10));
 
         assertNotNull(response);
         assertEquals(1, response.getContent().size());
-        
+
         UserDetailResponse userDetail = response.getContent().get(0);
         assertEquals("user-1", userDetail.getId());
         assertEquals("user@example.com", userDetail.getEmail());
@@ -275,4 +273,3 @@ class UserServiceTest {
         assertNull(userDetail.getAddress());
     }
 }
-

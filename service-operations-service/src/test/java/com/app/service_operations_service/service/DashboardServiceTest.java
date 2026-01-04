@@ -239,7 +239,7 @@ class DashboardServiceTest {
                 .completedAt(Instant.now())
                 .build();
 
-        Invoice invoice = Invoice.builder()
+        Invoice monthlyRevenueInvoice = Invoice.builder()
                 .id("invoice-1")
                 .customerId("customer-1")
                 .totalAmount(new BigDecimal("110.00"))
@@ -248,7 +248,7 @@ class DashboardServiceTest {
                 .build();
 
         List<ServiceRequest> requests = Arrays.asList(request);
-        List<Invoice> invoices = Arrays.asList(invoice);
+        List<Invoice> invoices = Arrays.asList(monthlyRevenueInvoice);
 
         when(serviceRequestRepository.findAll()).thenReturn(requests);
         when(invoiceRepository.findAll()).thenReturn(invoices);
@@ -280,7 +280,7 @@ class DashboardServiceTest {
                 .build();
 
         List<ServiceRequest> requests = Arrays.asList(activeRequest, completedRequest);
-        List<Invoice> invoices = Arrays.asList(invoice);
+        List<Invoice> invoices = List.of(this.invoice);
 
         when(serviceRequestRepository.findAll()).thenReturn(requests);
         when(invoiceRepository.findAll()).thenReturn(invoices);
@@ -446,4 +446,3 @@ class DashboardServiceTest {
         assertNotNull(response.getServiceRequestsByCategory());
     }
 }
-

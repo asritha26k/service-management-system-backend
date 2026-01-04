@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -18,8 +19,12 @@ import io.jsonwebtoken.security.Keys;
 public class JwtUtility {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtility.class);
     private static final String CLAIM_NEEDS_PW_CHANGE = "needsPasswordChange";
+    private static final String TOKEN_VALIDATED_SUCCESSFULLY = "Token validated successfully";
+    private static final String TOKEN_VALIDATION_FAILED = "Token validation failed: {} - {}";
+    private static final String ROLE_EXTRACTED = "Extracted role from token: {}";
 
     @Value("${jwt.secret}")
+    @SuppressWarnings("unused")  // Assigned by Spring's @Value injection
     private String jwtSecret;
 
     private SecretKey getSigningKey() {
@@ -33,10 +38,10 @@ public class JwtUtility {
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token);
-            logger.debug("✓ Token validated successfully");
+            logger.debug(TOKEN_VALIDATED_SUCCESSFULLY);
             return true;
-        } catch (Exception e) {
-            logger.warn("✗ Token validation failed: {} - {}", e.getClass().getSimpleName(), e.getMessage());
+        } catch (JwtException | IllegalArgumentException e) {
+            logger.warn(TOKEN_VALIDATION_FAILED, e.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }
@@ -63,12 +68,12 @@ public class JwtUtility {
     // Extract role
     public String extractRole(String token) {
         String role = extractAllClaims(token).get("role", String.class);
-        logger.debug("Extracted role from token: {}", role);
+        logger.debug(ROLE_EXTRACTED, role);
         return role;
     }
 
     public boolean extractNeedsPasswordChange(String token) {
         Boolean needsChange = extractAllClaims(token).get(CLAIM_NEEDS_PW_CHANGE, Boolean.class);
-        return needsChange != null && needsChange;
+        return Boolean.TRUE.equals(needsChange);
     }
 }

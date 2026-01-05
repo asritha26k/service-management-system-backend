@@ -193,12 +193,10 @@ public class ServiceRequestService {
         ValidationUtil.validateNotNull(request, "AssignRequest");
 
         ServiceRequest serviceRequest = fetch(id);
-        log.info("Assigning technician {} to request {}", request.getTechnicianId(), id);
         serviceRequest.setTechnicianId(request.getTechnicianId());
         serviceRequest.setStatus(RequestStatus.ASSIGNED);
         serviceRequest.setAssignedAt(Instant.now());
         ServiceRequest saved = requestRepository.save(serviceRequest);
-        log.info("Request saved with technicianId: {} and status: {}", saved.getTechnicianId(), saved.getStatus());
 
         // Workload will be increased when technician accepts the request
 
@@ -252,13 +250,10 @@ public class ServiceRequestService {
             TechnicianProfileResponse technician = technicianClient.getTechnician(saved.getTechnicianId());
             if (technician != null) {
                 int newWorkload = (technician.getCurrentWorkload() != null ? technician.getCurrentWorkload() : 0) + 1;
-                log.info("Increasing technician {} workload from {} to {} on acceptance",
-                        saved.getTechnicianId(), technician.getCurrentWorkload(), newWorkload);
                 technicianClient.updateWorkload(saved.getTechnicianId(), newWorkload);
             }
         }
 
-        log.info("Technician {} accepted work on request {}", userId, id);
     }
 
     public void rejectWork(String id, String userId, String reason) {
@@ -270,11 +265,6 @@ public class ServiceRequestService {
         request.setStatus(RequestStatus.CANCELLED);
         ServiceRequest saved = requestRepository.save(request);
 
-        // No workload decrease needed - workload was never increased on assignment
-        // Workload only increases when technician accepts, so if rejecting, no change
-        // needed
-
-        log.info("Technician {} rejected work on request {}", userId, id);
     }
 
     public ServiceRequestResponse completeByTechnician(
@@ -296,8 +286,6 @@ public class ServiceRequestService {
             if (technician != null) {
                 int newWorkload = Math.max(0,
                         (technician.getCurrentWorkload() != null ? technician.getCurrentWorkload() : 1) - 1);
-                log.info("Decreasing technician {} workload from {} to {} on completion",
-                        request.getTechnicianId(), technician.getCurrentWorkload(), newWorkload);
                 technicianClient.updateWorkload(request.getTechnicianId(), newWorkload);
             }
         }
@@ -305,7 +293,6 @@ public class ServiceRequestService {
         // Auto-generate invoice for completed request
         try {
             billingService.generateInvoiceForCompletedRequest(requestId);
-            log.info("Invoice generated automatically for completed request: {}", requestId);
         } catch (Exception e) {
             log.error("Failed to generate invoice for request {}: {}", requestId, e.getMessage());
             // Don't fail the completion if invoice generation fails

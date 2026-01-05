@@ -113,8 +113,7 @@ public class ServiceRequestController {
         @GetMapping("/my-requests")
         public List<ServiceRequestResponse> getMyRequests(RequestUser user) {
                 String customerId = validateAndGetUserId(user);
-                log.info("Fetching service requests for authenticated customer: {}",
-                                customerId);
+
                 return serviceRequestService.getByCustomer(customerId);
         }
 
@@ -122,9 +121,7 @@ public class ServiceRequestController {
         public List<ServiceRequestWithTechnicianResponse> getMyRequestsWithTechnicianDetails(RequestUser user) {
 
                 String customerId = validateAndGetUserId(user);
-                log.info(
-                                "Fetching service requests with technician details for customer: {}",
-                                customerId);
+
                 return serviceRequestService
                                 .getByCustomerWithTechnicianDetails(customerId);
         }
@@ -154,9 +151,7 @@ public class ServiceRequestController {
         public List<ServiceRequestWithCustomerResponse> getMyTechnicianRequestsWithCustomerDetails(RequestUser user) {
 
                 String userId = validateAndGetUserId(user);
-                log.info(
-                                "Fetching service requests with customer details for technician: {}",
-                                userId);
+
                 return serviceRequestService
                                 .getByTechnicianUserIdWithCustomerDetails(userId);
         }

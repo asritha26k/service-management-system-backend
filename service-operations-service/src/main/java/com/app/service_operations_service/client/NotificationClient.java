@@ -15,5 +15,4 @@ public interface NotificationClient {
     @CircuitBreaker(name = "notification-service", fallbackMethod = "sendNotificationFallback")
     void sendNotification(@RequestBody NotificationRequest request);
 
-
 }

@@ -3,12 +3,17 @@ package com.app.service_operations_service.service;
 import com.app.service_operations_service.client.NotificationClient;
 import com.app.service_operations_service.client.TechnicianClient;
 import com.app.service_operations_service.client.dto.TechnicianProfileResponse;
+import com.app.service_operations_service.dto.PagedResponse;
 import com.app.service_operations_service.dto.requests.*;
 import com.app.service_operations_service.exception.NotFoundException;
 import com.app.service_operations_service.model.ServiceRequest;
 import com.app.service_operations_service.model.enums.RequestStatus;
 import com.app.service_operations_service.repository.ServiceRequestRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,14 +64,21 @@ class ServiceRequestServiceTest {
     @Test
     void getAll_ShouldReturnAllRequests() {
         List<ServiceRequest> requests = Arrays.asList(serviceRequest);
-        when(requestRepository.findAll()).thenReturn(requests);
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<ServiceRequest> page = new PageImpl<>(requests, pageable, requests.size());
 
-        List<ServiceRequestResponse> responses = serviceRequestService.getAll();
+        when(requestRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        assertNotNull(responses);
-        assertEquals(1, responses.size());
-        assertEquals("req-1", responses.get(0).getId());
-        verify(requestRepository, times(1)).findAll();
+        PagedResponse<ServiceRequestResponse> response = serviceRequestService.getAll(pageable);
+
+        assertNotNull(response);
+        assertNotNull(response.getContent());
+        assertEquals(1, response.getContent().size());
+        assertEquals("req-1", response.getContent().get(0).getId());
+        assertEquals(0, response.getPageNumber());
+        assertEquals(20, response.getPageSize());
+        assertEquals(1, response.getTotalElements());
+        verify(requestRepository, times(1)).findAll(any(Pageable.class));
     }
 
     @Test

@@ -8,6 +8,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import com.app.service_operations_service.client.TechnicianClient;
 import com.app.service_operations_service.client.dto.NotificationRequest;
 import com.app.service_operations_service.client.dto.NotificationType;
 import com.app.service_operations_service.client.dto.TechnicianProfileResponse;
+import com.app.service_operations_service.dto.PagedResponse;
 import com.app.service_operations_service.exception.NotFoundException;
 import com.app.service_operations_service.model.ServiceRequest;
 import com.app.service_operations_service.model.enums.RequestStatus;
@@ -78,10 +81,20 @@ public class ServiceRequestService {
         return toResponse(saved);
     }
 
-    public List<ServiceRequestResponse> getAll() {
-        return requestRepository.findAll().stream()
+    public PagedResponse<ServiceRequestResponse> getAll(Pageable pageable) {
+        Page<ServiceRequest> page = requestRepository.findAll(pageable);
+
+        List<ServiceRequestResponse> content = page.getContent().stream()
                 .map(this::toResponse)
                 .toList();
+
+        return new PagedResponse<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast());
     }
 
     public List<ServiceRequestResponse> getByStatus(String status) {

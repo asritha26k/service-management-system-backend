@@ -1,5 +1,6 @@
 package com.app.service_operations_service.controller;
 
+import com.app.service_operations_service.dto.PagedResponse;
 import com.app.service_operations_service.dto.requests.*;
 import com.app.service_operations_service.model.enums.RequestStatus;
 import com.app.service_operations_service.service.ServiceRequestService;
@@ -29,16 +30,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(value = ServiceRequestController.class, excludeAutoConfiguration = {
-    MongoAutoConfiguration.class,
-    MongoDataAutoConfiguration.class,
-    EurekaClientAutoConfiguration.class
+        MongoAutoConfiguration.class,
+        MongoDataAutoConfiguration.class,
+        EurekaClientAutoConfiguration.class
 })
 @Import(com.app.service_operations_service.config.WebConfig.class)
 @TestPropertySource(properties = {
-    "logging.level.root=INFO",
-    "logging.level.com.app.service_operations_service=INFO",
-    "spring.application.name=service-operations-service-test",
-    "server.port=0"
+        "logging.level.root=INFO",
+        "logging.level.com.app.service_operations_service=INFO",
+        "spring.application.name=service-operations-service-test",
+        "server.port=0"
 })
 class ServiceRequestControllerTest {
 
@@ -100,10 +101,10 @@ class ServiceRequestControllerTest {
                 .thenReturn(serviceRequestResponse);
 
         mockMvc.perform(post("/api/service-requests")
-                        .header(UserContext.HEADER_USER_ID, "customer-1")
-                        .header(UserContext.HEADER_USER_ROLE, "CUSTOMER")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header(UserContext.HEADER_USER_ID, "customer-1")
+                .header(UserContext.HEADER_USER_ROLE, "CUSTOMER")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("req-1"))
                 .andExpect(jsonPath("$.message").value("Service request created successfully"));
@@ -118,20 +119,38 @@ class ServiceRequestControllerTest {
         request.setAddress("123 Main St");
 
         mockMvc.perform(post("/api/service-requests")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void getAll_ShouldReturnOk() throws Exception {
-        List<ServiceRequestResponse> requests = Arrays.asList(serviceRequestResponse);
-        when(serviceRequestService.getAll()).thenReturn(requests);
+        ServiceRequestResponse req2 = new ServiceRequestResponse();
+        req2.setId("req-2");
+        req2.setRequestNumber("REQ-87654321");
+
+        List<ServiceRequestResponse> requests = Arrays.asList(serviceRequestResponse, req2);
+        PagedResponse<ServiceRequestResponse> pagedResponse = new PagedResponse<>(
+                requests,
+                0, // page number
+                20, // page size
+                2, // total elements
+                1, // total pages
+                true // is last
+        );
+
+        when(serviceRequestService.getAll(any())).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/service-requests"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("req-1"))
-                .andExpect(jsonPath("$[0].requestNumber").value("REQ-12345678"));
+                .andExpect(jsonPath("$.content[0].id").value("req-1"))
+                .andExpect(jsonPath("$.content[0].requestNumber").value("REQ-12345678"))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(20))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true));
     }
 
     @Test
@@ -169,8 +188,8 @@ class ServiceRequestControllerTest {
         when(serviceRequestService.getByCustomer("customer-1")).thenReturn(requests);
 
         mockMvc.perform(get("/api/service-requests/my-requests")
-                        .header(UserContext.HEADER_USER_ID, "customer-1")
-                        .header(UserContext.HEADER_USER_ROLE, "CUSTOMER"))
+                .header(UserContext.HEADER_USER_ID, "customer-1")
+                .header(UserContext.HEADER_USER_ROLE, "CUSTOMER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].customerId").value("customer-1"));
     }
@@ -181,8 +200,8 @@ class ServiceRequestControllerTest {
         when(serviceRequestService.getByCustomerWithTechnicianDetails("customer-1")).thenReturn(requests);
 
         mockMvc.perform(get("/api/service-requests/my-requests/with-technician")
-                        .header(UserContext.HEADER_USER_ID, "customer-1")
-                        .header(UserContext.HEADER_USER_ROLE, "CUSTOMER"))
+                .header(UserContext.HEADER_USER_ID, "customer-1")
+                .header(UserContext.HEADER_USER_ROLE, "CUSTOMER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("req-1"));
     }
@@ -193,8 +212,8 @@ class ServiceRequestControllerTest {
         when(serviceRequestService.getByTechnicianUserId("tech-user-1")).thenReturn(requests);
 
         mockMvc.perform(get("/api/service-requests/technician/my-requests")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isOk());
     }
 
@@ -204,8 +223,8 @@ class ServiceRequestControllerTest {
         request.setTechnicianId("tech-1");
 
         mockMvc.perform(put("/api/service-requests/req-1/assign")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
     }
 
@@ -215,16 +234,16 @@ class ServiceRequestControllerTest {
         request.setStatus("ASSIGNED");
 
         mockMvc.perform(put("/api/service-requests/req-1/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void cancel_ShouldReturnNoContent() throws Exception {
         mockMvc.perform(put("/api/service-requests/req-1/cancel")
-                        .header(UserContext.HEADER_USER_ID, "customer-1")
-                        .header(UserContext.HEADER_USER_ROLE, "CUSTOMER"))
+                .header(UserContext.HEADER_USER_ID, "customer-1")
+                .header(UserContext.HEADER_USER_ROLE, "CUSTOMER"))
                 .andExpect(status().isNoContent());
     }
 
@@ -234,26 +253,26 @@ class ServiceRequestControllerTest {
         request.setPreferredDate(Instant.now().plusSeconds(7200));
 
         mockMvc.perform(put("/api/service-requests/req-1/reschedule")
-                        .header(UserContext.HEADER_USER_ID, "customer-1")
-                        .header(UserContext.HEADER_USER_ROLE, "CUSTOMER")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header(UserContext.HEADER_USER_ID, "customer-1")
+                .header(UserContext.HEADER_USER_ROLE, "CUSTOMER")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void completeByTechnician_ShouldReturnNoContent() throws Exception {
         mockMvc.perform(put("/api/service-requests/req-1/complete")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void accept_ShouldReturnNoContent() throws Exception {
         mockMvc.perform(put("/api/service-requests/req-1/accept")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isNoContent());
     }
 
@@ -264,10 +283,10 @@ class ServiceRequestControllerTest {
         request.setReason("Not available");
 
         mockMvc.perform(put("/api/service-requests/req-1/reject")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
     }
 
@@ -309,8 +328,8 @@ class ServiceRequestControllerTest {
         when(serviceRequestService.getByTechnicianUserIdWithCustomerDetails("tech-user-1")).thenReturn(requests);
 
         mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("req-1"))
                 .andExpect(jsonPath("$[0].customerId").value("customer-1"));
@@ -322,8 +341,8 @@ class ServiceRequestControllerTest {
         when(serviceRequestService.getByTechnicianUserIdWithCustomerDetails("tech-user-1")).thenReturn(requests);
 
         mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
     }
@@ -331,7 +350,7 @@ class ServiceRequestControllerTest {
     @Test
     void getMyTechnicianRequestsWithCustomerDetails_ShouldReturnForbidden_WhenUserIdMissing() throws Exception {
         mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isForbidden());
     }
 
@@ -368,12 +387,11 @@ class ServiceRequestControllerTest {
         when(serviceRequestService.getByTechnicianUserIdWithCustomerDetails("tech-user-1")).thenReturn(requests);
 
         mockMvc.perform(get("/api/service-requests/technician/my-requests/with-customer")
-                        .header(UserContext.HEADER_USER_ID, "tech-user-1")
-                        .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
+                .header(UserContext.HEADER_USER_ID, "tech-user-1")
+                .header(UserContext.HEADER_USER_ROLE, "TECHNICIAN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
                 .andExpect(jsonPath("$[0].id").value("req-1"))
                 .andExpect(jsonPath("$[1].id").value("req-2"));
     }
 }
-

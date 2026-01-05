@@ -9,6 +9,10 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      pull-requests: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,6 +28,7 @@ jobs:
         with:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
 
       # Export ALL environment variables from GitHub Secrets
       - name: Export environment variables
@@ -61,7 +66,7 @@ jobs:
       # Start only infrastructure services (clean DBs every run)
       - name: Start infrastructure services
         run: |
-          docker-compose up -d \
+          docker compose up -d \
             mysql-identity \
             mysql-notification \
             mysql-technician \
@@ -71,23 +76,29 @@ jobs:
       - name: Wait for infrastructure
         run: sleep 40
 
-      # Run tests + Sonar analysis
+      # Run tests + Sonar analysis (CORRECT)
       - name: Run tests and Sonar analysis
         run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.login=$SONAR_TOKEN
+          mvn clean verify \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.projectKey=asritha26k_service-management-system-backend \
+            -Dsonar.organization=asritha26k \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.qualitygate.wait=true
 
       # Enforce Sonar quality gate
       - name: Sonar Quality Gate
-        uses: sonarsource/sonarcloud-quality-gate@master
+        uses: sonarsource/sonarcloud-github-action@v1
+        timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       # Build Docker images (runs only if quality gate passes)
       - name: Build Docker images
-        run: docker-compose build
+        run: docker compose build
 
       # Cleanup (always runs)
       - name: Stop containers
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v

@@ -61,7 +61,6 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setSentAt(LocalDateTime.now());
 
         Notification saved = notificationRepository.save(notification);
-        log.info("Notification saved successfully with ID: {}", saved.getId());
 
         // Publish notification event for async processing
         NotificationEvent event = new NotificationEvent();
@@ -136,8 +135,6 @@ public class NotificationServiceImpl implements NotificationService {
             log.warn("No notifications found");
         } else {
             log.debug("Notifications found");
-            notifications.forEach(
-                    n -> log.debug("  - id: {}, subject: {}, read: {}", n.getId(), n.getSubject(), n.isRead()));
         }
 
         return notifications.stream()
@@ -152,17 +149,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public NotificationResponse markAsRead(String notificationId) {
-        log.info("Marking notification as read: {}", notificationId);
 
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> {
-                    log.warn("Notification not found with id: {}", notificationId);
                     return new NotFoundException("Notification not found for id: " + notificationId);
                 });
 
         notification.setRead(true);
         Notification updated = notificationRepository.save(notification);
-        log.info("Notification {} marked as read successfully", notificationId);
         return mapToResponse(updated);
     }
 

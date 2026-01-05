@@ -221,7 +221,6 @@ public class ServiceRequestService {
             if (serviceRequest.getTechnicianId() != null) {
                 completeByTechnician(id, serviceRequest.getTechnicianId());
             } else {
-                log.warn("Cannot complete request {} - no technician assigned", id);
                 // Fallback: just update status
                 serviceRequest.setStatus(RequestStatus.COMPLETED);
                 requestRepository.save(serviceRequest);

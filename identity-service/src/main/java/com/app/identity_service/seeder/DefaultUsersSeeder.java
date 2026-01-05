@@ -9,17 +9,29 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * DefaultUsersSeeder Component
- * Automatically seeds default MANAGER, CUSTOMER, and TECHNICIAN users at application startup in an idempotent manner.
- * The seeder checks if users with the configured emails already exist before creating them.
- * @Order(Integer.MAX_VALUE - 1) ensures this runs after AdminSeeder but before other components
+ * 
+ * SECURITY NOTICE: This seeder has been DISABLED due to security
+ * vulnerabilities.
+ * Hardcoded passwords in source code are a critical security risk and violate
+ * security best practices.
+ * 
+ * For production/staging environments:
+ * - Users should be created manually with strong, unique passwords
+ * - Or use environment-specific configuration with externalized secrets
+ * 
+ * For local development only:
+ * - Uncomment @Component annotation if needed for testing
+ * - Use secure password generation or externalized configuration
+ * 
+ * @Order(Integer.MAX_VALUE - 1) ensures this runs after AdminSeeder but before
+ *                          other components
  */
 @Slf4j
-@Component
+// @Component // DISABLED: Contains hardcoded passwords - security vulnerability
 @RequiredArgsConstructor
 @Order(Integer.MAX_VALUE - 1)
 public class DefaultUsersSeeder implements ApplicationRunner {
@@ -37,7 +49,8 @@ public class DefaultUsersSeeder implements ApplicationRunner {
             log.info("✓ All default users seeded successfully");
         } catch (Exception e) {
             log.warn("⚠ Could not seed default users at startup (database may not be ready): {}", e.getMessage());
-            log.info("You may need to create the users manually or ensure the database and tables exist before startup.");
+            log.info(
+                    "You may need to create the users manually or ensure the database and tables exist before startup.");
         }
     }
 

@@ -71,15 +71,17 @@ public class ServiceRequestService {
         entity.setPreferredDate(request.getPreferredDate());
         entity.setAddress(request.getAddress());
 
-        ServiceRequest saved = requestRepository.save(entity);
+        requestRepository.save(entity);
 
         notifyCustomer(
-                saved.getCustomerId(),
+                entity.getCustomerId(),
                 "Request Created",
-                YOUR_REQUEST_PREFIX + saved.getRequestNumber() + " is created.");
+                YOUR_REQUEST_PREFIX + entity.getRequestNumber() + " is created."
+        );
 
-        return toResponse(saved);
+        return toResponse(entity);
     }
+
 
     public PagedResponse<ServiceRequestResponse> getAll(Pageable pageable) {
         Page<ServiceRequest> page = requestRepository.findAll(pageable);

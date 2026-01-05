@@ -102,12 +102,19 @@ class ServiceRequestServiceTest {
         request.setPreferredDate(Instant.now().plusSeconds(3600));
         request.setAddress("123 Main St");
 
-        when(requestRepository.save(any(ServiceRequest.class))).thenReturn(serviceRequest);
+        when(requestRepository.save(any(ServiceRequest.class))).thenAnswer(invocation -> {
+            ServiceRequest savedRequest = invocation.getArgument(0);
+            savedRequest.setId("req-1"); // Simulate auto-generated ID
+            savedRequest.setStatus(RequestStatus.REQUESTED); // Simulate default status
+            savedRequest.setCreatedAt(Instant.now()); // Simulate timestamp
+            return savedRequest;
+        });
 
         ServiceRequestResponse response = serviceRequestService.create(request, "customer-1");
 
         assertNotNull(response);
         assertEquals("req-1", response.getId());
+        assertEquals(RequestStatus.REQUESTED, response.getStatus());
         verify(requestRepository, times(1)).save(any(ServiceRequest.class));
     }
 
@@ -240,5 +247,99 @@ class ServiceRequestServiceTest {
         serviceRequestService.reschedule("req-1", "customer-1", request);
 
         verify(requestRepository, times(1)).save(any(ServiceRequest.class));
+    }
+
+    @Test
+    void getByCustomerWithTechnicianDetails_ShouldReturnRequestsWithTechnicianDetails() {
+        serviceRequest.setTechnicianId("tech-1");
+        List<ServiceRequest> requests = Arrays.asList(serviceRequest);
+        when(requestRepository.findByCustomerId("customer-1")).thenReturn(requests);
+
+        List<ServiceRequestWithTechnicianResponse> responses = serviceRequestService
+                .getByCustomerWithTechnicianDetails("customer-1");
+
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        assertEquals("customer-1", responses.get(0).getCustomerId());
+        assertEquals("tech-1", responses.get(0).getTechnicianId());
+        verify(requestRepository, times(1)).findByCustomerId("customer-1");
+    }
+
+    @Test
+    void getByTechnicianUserIdWithCustomerDetails_ShouldReturnRequestsWithCustomerDetails() {
+        TechnicianProfileResponse technician = new TechnicianProfileResponse();
+        technician.setId("tech-1");
+        technician.setUserId("user-123");
+
+        serviceRequest.setTechnicianId("tech-1");
+        List<ServiceRequest> requests = Arrays.asList(serviceRequest);
+
+        when(technicianClient.getTechnicianByUserId("user-123")).thenReturn(technician);
+        when(requestRepository.findByTechnicianId("tech-1")).thenReturn(requests);
+
+        List<ServiceRequestWithCustomerResponse> responses = serviceRequestService
+                .getByTechnicianUserIdWithCustomerDetails("user-123");
+
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        assertEquals("customer-1", responses.get(0).getCustomerId());
+        verify(technicianClient, times(1)).getTechnicianByUserId("user-123");
+        verify(requestRepository, times(1)).findByTechnicianId("tech-1");
+    }
+
+    @Test
+    void getByTechnicianUserIdWithCustomerDetails_ShouldReturnEmptyList_WhenTechnicianNotFound() {
+        when(technicianClient.getTechnicianByUserId("user-999")).thenReturn(null);
+
+        List<ServiceRequestWithCustomerResponse> responses = serviceRequestService
+                .getByTechnicianUserIdWithCustomerDetails("user-999");
+
+        assertNotNull(responses);
+        assertTrue(responses.isEmpty());
+        verify(technicianClient, times(1)).getTechnicianByUserId("user-999");
+        verify(requestRepository, never()).findByTechnicianId(anyString());
+    }
+
+    @Test
+    void getByTechnicianUserId_ShouldReturnRequestsForTechnician() {
+        TechnicianProfileResponse technician = new TechnicianProfileResponse();
+        technician.setId("tech-1");
+        technician.setUserId("user-123");
+
+        serviceRequest.setTechnicianId("tech-1");
+        List<ServiceRequest> requests = Arrays.asList(serviceRequest);
+
+        when(technicianClient.getTechnicianByUserId("user-123")).thenReturn(technician);
+        when(requestRepository.findByTechnicianId("tech-1")).thenReturn(requests);
+
+        List<ServiceRequestResponse> responses = serviceRequestService.getByTechnicianUserId("user-123");
+
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        assertEquals("req-1", responses.get(0).getId());
+        verify(technicianClient, times(1)).getTechnicianByUserId("user-123");
+        verify(requestRepository, times(1)).findByTechnicianId("tech-1");
+    }
+
+    @Test
+    void getByTechnicianUserId_ShouldReturnEmptyList_WhenTechnicianNotFound() {
+        when(technicianClient.getTechnicianByUserId("user-999")).thenReturn(null);
+
+        List<ServiceRequestResponse> responses = serviceRequestService.getByTechnicianUserId("user-999");
+
+        assertNotNull(responses);
+        assertTrue(responses.isEmpty());
+        verify(technicianClient, times(1)).getTechnicianByUserId("user-999");
+        verify(requestRepository, never()).findByTechnicianId(anyString());
+    }
+
+    @Test
+    void completeByTechnician_ShouldThrowException_WhenRequestNotFound() {
+        when(requestRepository.findById("invalid-id")).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> serviceRequestService.completeByTechnician("invalid-id", "tech-user-1"));
+
+        verify(requestRepository, never()).save(any(ServiceRequest.class));
     }
 }

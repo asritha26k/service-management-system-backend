@@ -79,7 +79,7 @@ jobs:
 
       # Enforce Sonar quality gate
       - name: Sonar Quality Gate
-        uses: SonarSource/sonarcloud-quality-gate-action@v1.1
+        uses: sonarsource/sonarcloud-quality-gate@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 

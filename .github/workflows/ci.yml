@@ -1,0 +1,93 @@
+name: CI - Test, Sonar, Docker Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: maven-${{ hashFiles('**/pom.xml') }}
+
+      # Export ALL environment variables from GitHub Secrets
+      - name: Export environment variables
+        run: |
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> $GITHUB_ENV
+
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+
+          echo "DB_USERNAME_NOTIFICATION=${{ secrets.DB_USERNAME_NOTIFICATION }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD_NOTIFICATION=${{ secrets.DB_PASSWORD_NOTIFICATION }}" >> $GITHUB_ENV
+
+          echo "DB_USERNAME_TECHNICIAN=${{ secrets.DB_USERNAME_TECHNICIAN }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD_TECHNICIAN=${{ secrets.DB_PASSWORD_TECHNICIAN }}" >> $GITHUB_ENV
+
+          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> $GITHUB_ENV
+          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> $GITHUB_ENV
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> $GITHUB_ENV
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> $GITHUB_ENV
+
+          echo "RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}" >> $GITHUB_ENV
+          echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> $GITHUB_ENV
+
+          echo "JWT_ACCESS_TOKEN_EXPIRY=${{ secrets.JWT_ACCESS_TOKEN_EXPIRY }}" >> $GITHUB_ENV
+          echo "JWT_REFRESH_TOKEN_EXPIRY=${{ secrets.JWT_REFRESH_TOKEN_EXPIRY }}" >> $GITHUB_ENV
+
+          echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> $GITHUB_ENV
+          echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> $GITHUB_ENV
+          echo "ADMIN_NAME=${{ secrets.ADMIN_NAME }}" >> $GITHUB_ENV
+
+          echo "SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}" >> $GITHUB_ENV
+
+      # Start only infrastructure services (clean DBs every run)
+      - name: Start infrastructure services
+        run: |
+          docker-compose up -d \
+            mysql-identity \
+            mysql-notification \
+            mysql-technician \
+            mongodb \
+            rabbitmq
+
+      - name: Wait for infrastructure
+        run: sleep 40
+
+      # Run tests + Sonar analysis
+      - name: Run tests and Sonar analysis
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.login=$SONAR_TOKEN
+
+      # Enforce Sonar quality gate
+      - name: Sonar Quality Gate
+        uses: SonarSource/sonarcloud-quality-gate-action@v1.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Build Docker images (runs only if quality gate passes)
+      - name: Build Docker images
+        run: docker-compose build
+
+      # Cleanup (always runs)
+      - name: Stop containers
+        if: always()
+        run: docker-compose down -v

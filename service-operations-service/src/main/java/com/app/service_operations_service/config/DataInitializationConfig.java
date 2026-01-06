@@ -54,19 +54,19 @@ public class DataInitializationConfig {
 
     // Unsplash image URLs (free for commercial use, no attribution required) [web:22][web:39][web:40][web:28][web:37][web:36][web:21]
     private static final String DEFAULT_SERVICE_IMAGE_URL =
-            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800"; // HVAC units on roof [web:22]
+            "https://unsplash.com/photos/caucasian-plumbing-worker-installing-toilet-bowl-and-sanitary-system-inside-the-house-4PPY1v2xChU?w=800"; // HVAC units on roof [web:22]
 
     private static final String AC_REPAIR_IMAGE_URL =
-            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800"; // Technician working on AC [web:28]
+            "https://unsplash.com/photos/air-conditioning-checking-and-filter-cleaning-maintenance-service-VuRql-uCgTM?w=800"; // Technician working on AC [web:28]
 
     private static final String HVAC_INSTALL_IMAGE_URL =
-            "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=800"; // Industrial HVAC piping [web:22]
+            "https://unsplash.com/photos/a-close-up-of-a-bunch-of-wires-and-wires-hP0yzStvp-M?w=800"; // Industrial HVAC piping [web:22]
 
     private static final String HVAC_MAINTENANCE_IMAGE_URL =
-            "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=800"; // Technician with gauges [web:21]
+            "https://unsplash.com/photos/multiple-air-conditioning-units-mounted-on-a-wall-HVXmK1wqntk?w=800"; // Technician with gauges [web:21]
 
     private static final String DUCT_CLEANING_IMAGE_URL =
-            "https://images.unsplash.com/photo-1604882817831-658e1ac26b3d?w=800"; // Duct / ventilation [web:24][web:25]
+            "https://unsplash.com/photos/two-young-workers-of-contemporary-cleaning-service-company-in-coveralls-and-gloves-carrying-out-their-work-in-openspace-office-LEftsPMP6cs?w=800"; // Duct / ventilation [web:24][web:25]
 
     private static final String SMART_THERMOSTAT_IMAGE_URL =
             "https://images.unsplash.com/photo-1511452885600-a3d2c9148a31?w=800"; // Smart thermostat on wall [web:39][web:36]
@@ -87,13 +87,13 @@ public class DataInitializationConfig {
             "https://images.unsplash.com/photo-1599751449128-16a7faa75d14?w=800"; // Wall-mounted split AC [web:34][web:40]
 
     private static final String FURNACE_REPAIR_IMAGE_URL =
-            "https://images.unsplash.com/photo-1517246982581-5ca4f7f4a98e?w=800"; // Technician in boiler room [web:22]
+            "https://unsplash.com/photos/a-worker-is-using-a-grinder-in-a-workshop-BDaEI0L5hXI?w=800"; // Technician in boiler room [web:22]
 
     private static final String EMERGENCY_REPAIR_IMAGE_URL =
             "https://images.unsplash.com/photo-1581091012184-5c8afae1c4d7?w=800"; // Night technician / tools [web:21]
 
     private static final String LEAK_REPAIR_IMAGE_URL =
-            "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800"; // Close-up tools / piping [web:21]
+            "https://unsplash.com/photos/a-faucet-running-water-HutGSBkIrzs?w=800"; // Close-up tools / piping [web:21]
 
     @Bean
     public CommandLineRunner initialize(

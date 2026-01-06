@@ -139,18 +139,33 @@ class TechnicianServiceTest {
     void getAvailable_ShouldReturnOnlyAvailableTechnicians() {
         TechnicianProfile availableProfile = new TechnicianProfile();
         availableProfile.setId("profile-1");
+        availableProfile.setUserId("user-1");
+        availableProfile.setName("John Doe");
+        availableProfile.setSpecialization("Plumbing");
+        availableProfile.setSkills(Arrays.asList("Pipe Repair", "Water Heater"));
+        availableProfile.setLocation("New York");
         availableProfile.setAvailable(true);
         availableProfile.setCurrentWorkload(2);
         availableProfile.setMaxWorkload(5);
 
         TechnicianProfile unavailableProfile = new TechnicianProfile();
         unavailableProfile.setId("profile-2");
+        unavailableProfile.setUserId("user-2");
+        unavailableProfile.setName("Jane Smith");
+        unavailableProfile.setSpecialization("HVAC");
+        unavailableProfile.setSkills(Arrays.asList("AC Repair", "Heating"));
+        unavailableProfile.setLocation("Boston");
         unavailableProfile.setAvailable(false);
         unavailableProfile.setCurrentWorkload(0);
         unavailableProfile.setMaxWorkload(5);
 
         TechnicianProfile fullWorkloadProfile = new TechnicianProfile();
         fullWorkloadProfile.setId("profile-3");
+        fullWorkloadProfile.setUserId("user-3");
+        fullWorkloadProfile.setName("Bob Johnson");
+        fullWorkloadProfile.setSpecialization("Electrical");
+        fullWorkloadProfile.setSkills(Arrays.asList("Wiring", "Panel Installation"));
+        fullWorkloadProfile.setLocation("Chicago");
         fullWorkloadProfile.setAvailable(true);
         fullWorkloadProfile.setCurrentWorkload(5);
         fullWorkloadProfile.setMaxWorkload(5);
@@ -163,6 +178,10 @@ class TechnicianServiceTest {
         assertNotNull(responses);
         assertEquals(1, responses.size());
         assertEquals("profile-1", responses.get(0).getId());
+        assertEquals("user-1", responses.get(0).getUserId());
+        assertEquals("John Doe", responses.get(0).getName());
+        assertEquals(Arrays.asList("Pipe Repair", "Water Heater"), responses.get(0).getSkills());
+        assertEquals("New York", responses.get(0).getLocation());
         verify(repository, times(1)).findAll();
     }
 

@@ -1,5 +1,6 @@
 package com.app.technicianservice.controller;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,19 @@ public class TechnicianController {
         TechnicianProfileResponse profile = technicianService.createProfile(user, request);
         return new IdMessageResponse(profile.getId(), "Technician profile created successfully");
     }
+    @GetMapping("/suggestions")
+public List<TechnicianProfileResponse> getSuggestions(
+        @RequestParam(name = "location", required = false) String location,
+        @RequestParam(name = "skills", required = false) String skillsParam) {
+
+    List<String> skills = (skillsParam == null || skillsParam.isBlank())
+            ? null
+            : Arrays.asList(skillsParam.split(","));
+
+    return technicianService.findSuggestions(location, skills);
+}
+
+   
 
     @GetMapping("/available")
     public List<TechnicianSummaryResponse> getAvailable() {

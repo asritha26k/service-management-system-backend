@@ -45,19 +45,46 @@ public class TechnicianService {
     }
 
     private boolean matchesLocation(String location, TechnicianProfile tech) {
-        if (location == null || location.isBlank()) {
+        if (location == null || location.isBlank() || tech.getLocation() == null) {
             return true;
         }
-        return tech.getLocation() != null &&
-                tech.getLocation().toLowerCase().contains(location.toLowerCase());
+        
+        String[] locationParts = location.toLowerCase().split("[,\\s]+");
+        String[] techLocationParts = tech.getLocation().toLowerCase().split("[,\\s]+");
+        
+        for (String locPart : locationParts) {
+            for (String techPart : techLocationParts) {
+                if (!locPart.isEmpty() && !techPart.isEmpty() && 
+                    (locPart.contains(techPart) || techPart.contains(locPart))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean matchesSkills(List<String> skills, TechnicianProfile tech) {
         if (skills == null || skills.isEmpty()) {
             return true;
         }
-        return tech.getSkills().stream()
-                .anyMatch(s -> skills.stream().anyMatch(reqS -> reqS.equalsIgnoreCase(s)));
+        
+        for (String reqSkill : skills) {
+            String[] reqSkillParts = reqSkill.toLowerCase().split("[\\s]+");
+            
+            for (String techSkill : tech.getSkills()) {
+                String[] techSkillParts = techSkill.toLowerCase().split("[\\s]+");
+                
+                for (String reqPart : reqSkillParts) {
+                    for (String techPart : techSkillParts) {
+                        if (!reqPart.isEmpty() && !techPart.isEmpty() && 
+                            (reqPart.contains(techPart) || techPart.contains(reqPart))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private int compareByWorkload(TechnicianProfile t1, TechnicianProfile t2) {
@@ -235,8 +262,11 @@ public class TechnicianService {
     private TechnicianSummaryResponse toSummaryResponse(TechnicianProfile p) {
         return new TechnicianSummaryResponse(
                 p.getId(),
+                p.getUserId(),
                 p.getName(),
                 p.getSpecialization(),
+                p.getSkills(),
+                p.getLocation(),
                 p.getAvailable(),
                 p.getCurrentWorkload(),
                 p.getMaxWorkload());

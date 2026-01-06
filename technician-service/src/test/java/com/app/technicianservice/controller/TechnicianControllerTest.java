@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @WebMvcTest(value = TechnicianController.class, excludeAutoConfiguration = {
                 EurekaClientAutoConfiguration.class
@@ -117,7 +118,8 @@ class TechnicianControllerTest {
         @Test
         void getAvailable_ShouldReturnOk() throws Exception {
                 TechnicianSummaryResponse summary = new TechnicianSummaryResponse(
-                                "profile-1", "John Doe", "Plumbing", true, 2, 5);
+                                "profile-1", "user-1", "John Doe", "Plumbing",
+                                Arrays.asList("Pipe Repair", "Water Heater"), "New York", true, 2, 5);
                 List<TechnicianSummaryResponse> summaries = Arrays.asList(summary);
                 when(technicianService.getAvailable()).thenReturn(summaries);
 
@@ -126,6 +128,9 @@ class TechnicianControllerTest {
                                 .andExpect(jsonPath("$[0].id").value("profile-1"))
                                 .andExpect(jsonPath("$[0].name").value("John Doe"));
         }
+
+
+
 
         @Test
         void getStats_ShouldReturnOk() throws Exception {

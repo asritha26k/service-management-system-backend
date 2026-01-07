@@ -1,0 +1,615 @@
+{
+	"info": {
+		"_postman_id": "f98abb0a-a700-48bb-902f-94a06cc75127",
+		"name": "admin flow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-f98abb0a-a700-48bb-902f-94a06cc75127?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "register manager",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"manager26@example.com\",\r\n  \"name\": \"Manager 26\",\r\n  \"role\":\"MANAGER\",\r\n  \"phone\": \"4573641211\",\r\n  \"department\":\"cleaning\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/admin/register-manager",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"admin",
+						"register-manager"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get user by role",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/users/role/customer?page=0&size=20&sort=email",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"users",
+						"role",
+						"customer"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "20"
+						},
+						{
+							"key": "sort",
+							"value": "email"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update service",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Deep Clean Deluxe\",\r\n  \"description\": \"With carpets\",\r\n  \"basePrice\": 150.00,\r\n  \"estimatedDurationMinutes\": 210,\r\n  \"slaHours\": 24,\r\n  \"active\": true,\r\n  \"images\": [{\"url\":\"https://cdn/img2.jpg\",\"alt\":\"after\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/services/6953abb68d73b60ebdbbb18f",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"services",
+						"6953abb68d73b60ebdbbb18f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "search user by email",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ac2VydmljZW1hbmFnZW1lbnQuY29tIiwic3ViIjoiYWRtaW5Ac2VydmljZW1hbmFnZW1lbnQuY29tIiwiaWF0IjoxNzY3MDg0MDU5LCJleHAiOjE3NjcwODQ5NTl9.trdcDOgory4TgnxNrUQ1R8THzReesYfqdbryr7_3C_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/users/search?email=asritha@example.com",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"users",
+						"search"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "asritha@example.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get user by id",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/users/3",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"users",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "adding categories",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\":\"Repairing2\",\"description\":\"Purifier Repairing2\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/categories",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"categories"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "adding categories",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Repairing\",\"description\":\"Home cleaning\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/catalog/categories",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"catalog",
+								"categories"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 30 Dec 2025 10:37:18 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"6953ab5d8d73b60ebdbbb18d\",\n    \"name\": \"Cleaning\",\n    \"description\": \"Home cleaning\",\n    \"active\": true,\n    \"createdAt\": \"2025-12-30T10:37:17.651863100Z\"\n}"
+				},
+				{
+					"name": "adding categories",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Repairing\",\"description\":\"Purifier Repairing\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/catalog/categories",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"catalog",
+								"categories"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 30 Dec 2025 10:37:53 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"6953ab818d73b60ebdbbb18e\",\n    \"name\": \"Repairing\",\n    \"description\": \"Purifier Repairing\",\n    \"active\": true,\n    \"createdAt\": \"2025-12-30T10:37:53.786270Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "add services",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"categoryId\": \"69560bdf551d252e7bc0aa14\",\r\n  \"name\": \"Deep Clean4\",\r\n  \"description\": \"Full home deep clean\",\r\n  \"basePrice\": 180.00,\r\n  \"estimatedDurationMinutes\": 100,\r\n  \"slaHours\": 24,\r\n  \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/services",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"services"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "add services",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"categoryId\": \"6953ab5d8d73b60ebdbbb18d1\",\r\n  \"name\": \"Deep Clean\",\r\n  \"description\": \"Full home deep clean\",\r\n  \"basePrice\": 120.00,\r\n  \"estimatedDurationMinutes\": 180,\r\n  \"slaHours\": 24,\r\n  \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/catalog/services",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"catalog",
+								"services"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 30 Dec 2025 10:38:46 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"6953abb68d73b60ebdbbb18f\",\n    \"categoryId\": \"6953ab5d8d73b60ebdbbb18d1\",\n    \"name\": \"Deep Clean\",\n    \"description\": \"Full home deep clean\",\n    \"basePrice\": 120,\n    \"estimatedDurationMinutes\": 180,\n    \"slaHours\": 24,\n    \"images\": [\n        {\n            \"url\": \"https://cdn/img1.jpg\",\n            \"alt\": \"before\"\n        }\n    ],\n    \"active\": true,\n    \"createdAt\": \"2025-12-30T10:38:46.855009600Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "get statistics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/service-requests/stats",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"stats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update service req",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"categoryId\": \"64fcat1\",\r\n  \"name\": \"Deep Clean\",\r\n  \"description\": \"Full home deep clean\",\r\n  \"basePrice\": 120.00,\r\n  \"estimatedDurationMinutes\": 180,\r\n  \"slaHours\": 24,\r\n  \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/service-requests/{id}/status",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"{id}",
+						"status"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

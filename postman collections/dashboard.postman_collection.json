@@ -1,0 +1,659 @@
+{
+	"info": {
+		"_postman_id": "9de7c578-7b0c-4f19-a00c-cb8d5db3c11f",
+		"name": "dashboard",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-9de7c578-7b0c-4f19-a00c-cb8d5db3c11f?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "dashboard summary",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/dashboard/summary",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"dashboard",
+						"summary"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "dashboard summary",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/dashboard/summary",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"summary"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 02 Jan 2026 11:14:18 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"serviceRequestsByStatus\": {\n        \"COMPLETED\": 3,\n        \"ACCEPTED\": 1,\n        \"ASSIGNED\": 1,\n        \"REQUESTED\": 2\n    },\n    \"serviceRequestsByCategory\": {\n        \"69560c0f551d252e7bc0aa17\": 1,\n        \"6953abb68d73b60ebdbbb18f\": 1,\n        \"69565c7efe6fd15cbf97b0fc\": 4,\n        \"69560bfe551d252e7bc0aa15\": 1\n    },\n    \"totalActiveRequests\": 4,\n    \"totalCompletedRequests\": 3,\n    \"activeTechnicians\": 3,\n    \"averageResolutionTimeHours\": 0.3333333333333333,\n    \"monthlyRevenue\": 495,\n    \"totalRevenue\": 495,\n    \"pendingPayments\": 0\n}"
+				}
+			]
+		},
+		{
+			"name": "technician workload",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/dashboard/technician-workload",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"dashboard",
+						"technician-workload"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "technician workload",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/dashboard/technician-workload",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"technician-workload"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 02 Jan 2026 11:18:43 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"totalTechnicians\": 3,\n    \"availableTechnicians\": 3,\n    \"averageRating\": 5,\n    \"averageWorkloadRatio\": 4.166666666666667\n}"
+				}
+			]
+		},
+		{
+			"name": "resolution time",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/dashboard/resolution-time",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"dashboard",
+						"resolution-time"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "resolution time",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/dashboard/resolution-time",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"resolution-time"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 02 Jan 2026 11:18:48 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"averageResolutionTimeHours\": 0.3333333333333333,\n    \"averageResolutionTimeDays\": 0.013888888888888888\n}"
+				}
+			]
+		},
+		{
+			"name": "category stats",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/dashboard/category-stats",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"dashboard",
+						"category-stats"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "category stats",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/dashboard/category-stats",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"category-stats"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 02 Jan 2026 11:19:17 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"serviceStatistics\": {\n        \"69560c0f551d252e7bc0aa17\": 1,\n        \"6953abb68d73b60ebdbbb18f\": 1,\n        \"69565c7efe6fd15cbf97b0fc\": 4,\n        \"69560bfe551d252e7bc0aa15\": 1\n    },\n    \"totalCategories\": 3\n}"
+				}
+			]
+		},
+		{
+			"name": "get revenue",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/billing/reports/revenue",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"reports",
+						"revenue"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get revenue",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/billing/reports/revenue",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"billing",
+								"reports",
+								"revenue"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 02 Jan 2026 11:19:38 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"totalServiceAmount\": 450,\n    \"totalTaxAmount\": 45,\n    \"totalRevenue\": 495,\n    \"invoiceCount\": 3,\n    \"paidCount\": 3\n}"
+				}
+			]
+		},
+		{
+			"name": "monthly revenue",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/billing/reports/revenue/monthly",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"reports",
+						"revenue",
+						"monthly"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "monthly revenue",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}service-operations-service/api/billing/reports/revenue/monthly",
+							"host": [
+								"{{baseUrl}}service-operations-service"
+							],
+							"path": [
+								"api",
+								"billing",
+								"reports",
+								"revenue",
+								"monthly"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "transfer-encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Vary",
+							"value": "Origin"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Method"
+						},
+						{
+							"key": "Vary",
+							"value": "Access-Control-Request-Headers"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 02 Jan 2026 11:47:37 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"year\": 2026,\n        \"month\": 1,\n        \"totalRevenue\": 495,\n        \"paidInvoiceCount\": 3\n    }\n]"
+				}
+			]
+		}
+	]
+}

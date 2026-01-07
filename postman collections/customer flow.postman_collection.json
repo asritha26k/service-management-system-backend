@@ -1,0 +1,539 @@
+{
+	"info": {
+		"_postman_id": "dcf0e374-55ac-404d-8ac6-e7877e359088",
+		"name": "customer flow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-dcf0e374-55ac-404d-8ac6-e7877e359088?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "get categories",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/categories",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"categories"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get services",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/services",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"services"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "book service request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceId\": \"695a9439b0fbd8169531014f\",\r\n  \"priority\": \"HIGH\",\r\n  \"preferredDate\": \"2026-01-14T10:00:00Z\",\r\n  \"address\": \"123 Main St, City\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get service by id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/services/69565c7efe6fd15cbf97b0fc",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"services",
+						"69565c7efe6fd15cbf97b0fc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get category by its id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/categories/{id}",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"categories",
+						"{id}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get my requests with technician details",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"customerId\": 3,\r\n//   \"serviceId\": \"6953abb68d73b60ebdbbb18f\",\r\n//   \"priority\": \"HIGH\",\r\n//   \"preferredDate\": \"2026-01-05T10:00:00Z\",\r\n//   \"address\": \"123 Main St, City\"\r\n// }"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/my-requests/with-technician",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"my-requests",
+						"with-technician"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getting services by category id",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"categoryId\": \"64fcat1\",\r\n  \"name\": \"Deep Clean\",\r\n  \"description\": \"Full home deep clean\",\r\n  \"basePrice\": 120.00,\r\n  \"estimatedDurationMinutes\": 180,\r\n  \"slaHours\": 24,\r\n  \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/catalog/services/category/6953ab5d8d73b60ebdbbb18d1",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"catalog",
+						"services",
+						"category",
+						"6953ab5d8d73b60ebdbbb18d1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get my requests",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"customerId\": 3,\r\n//   \"serviceId\": \"6953abb68d73b60ebdbbb18f\",\r\n//   \"priority\": \"HIGH\",\r\n//   \"preferredDate\": \"2026-01-05T10:00:00Z\",\r\n//   \"address\": \"123 Main St, City\"\r\n// }"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/my-requests",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"my-requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cancel request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"categoryId\": \"64fcat1\",\r\n//   \"name\": \"Deep Clean\",\r\n//   \"description\": \"Full home deep clean\",\r\n//   \"basePrice\": 120.00,\r\n//   \"estimatedDurationMinutes\": 180,\r\n//   \"slaHours\": 24,\r\n//   \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/695516a51be6f62b99128e97/cancel",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"695516a51be6f62b99128e97",
+						"cancel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "re schedule the requests",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"preferredDate\":\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/{id}/reschedule",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"{id}",
+						"reschedule"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get invoice per customer",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/billing/invoices/customer/{customerId}",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"invoices",
+						"customer",
+						"{customerId}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update payment",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"paymentStatus\":\"PAID\",\"paymentMethod\":\"CARD\"}",
+					"options": {
+						"raw": {
+							"language": "javascript"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/billing/invoices/{id}/payment",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"invoices",
+						"{id}",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get invoice by id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/billing/invoices/{id}",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"invoices",
+						"{id}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "submit a rating",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"rating\": 5,\r\n  \"comment\": \"Excellent work and very professional\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2/ratings",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2",
+						"ratings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "see ratings of a technician",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Jane\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"jane@acme.com\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"skills\": [\"ELECTRICAL\", \"HVAC\"],\r\n  \"location\": \"NYC\",\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/7e7a35c7-8654-4f1a-8a16-803ae6c4a159/ratings",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"7e7a35c7-8654-4f1a-8a16-803ae6c4a159",
+						"ratings"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

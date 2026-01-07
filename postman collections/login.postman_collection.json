@@ -1,0 +1,217 @@
+{
+	"info": {
+		"_postman_id": "26c813ec-ccf0-4050-ab23-d3e93a8da23f",
+		"name": "login",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-26c813ec-ccf0-4050-ab23-d3e93a8da23f?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "registering",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"asritha@gmail.com\",\r\n  \"password\": \"password\",\r\n  \"name\": \"Asritha\",\r\n  \"phone\": \"9876543218\",\r\n  \"address\": \"123, MG Road\",\r\n  \"city\": \"Bengaluru\",\r\n  \"state\": \"Karnataka\",\r\n  \"pincode\": \"560001\"\r\n}\r\n// {\r\n//   \"email\": \"asritha@example.com\",\r\n//   \"password\": \"password123\",\r\n//   \"name\": \"Asritha K\",\r\n//   \"phone\": \"9876543210\",\r\n//   \"address\": \"123, MG Road\",\r\n//   \"city\": \"Bengaluru\",\r\n//   \"state\": \"Karnataka\",\r\n//   \"pincode\": \"560001\"\r\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/register",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"email\": \"tech5@gmail.com\",\r\n//   \"password\": \"@srith@26A\"\r\n// }\r\n\r\n\r\n// {\r\n//   \"email\": \"cust-tech2@gmail.com\",\r\n//   \"password\": \"password\"\r\n// }\r\n// {\r\n//   \"email\": \"manager5@gmail.com\",\r\n//   \"password\": \"password\"\r\n// }\r\n\r\n\r\n\r\n// {\r\n//   \"email\": \"asritha@example.com\",\r\n//   \"password\": \"password123\"\r\n {\r\n  \"email\": \"admin@gmail.com\",\r\n  \"password\": \"admin@1234567\"\r\n}\r\n// }\r\n\r\n// {\r\n//   \"email\": \"manager26@example.com\",\r\n//   \"password\": \"npassword\"\r\n// }\r\n// {\r\n//   \"email\": \"tech1.apply@email.com\",\r\n//   \"password\": \"password\"\r\n// }\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/login",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQ1VTVE9NRVIiLCJ1c2VySWQiOjEsImVtYWlsIjoiYXNyaXRoYUBleGFtcGxlLmNvbSIsInN1YiI6ImFzcml0aGFAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjcwNzg5ODYsImV4cCI6MTc2NzA3OTg4Nn0.KUwJg_Rl1Bsj95HviYYGhXAYdfHgcCwCxJknCyhSu8E",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/logout",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh token",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQ1VTVE9NRVIiLCJ1c2VySWQiOjEsImVtYWlsIjoiYXNyaXRoYUBleGFtcGxlLmNvbSIsInN1YiI6ImFzcml0aGFAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjcwNzg4NjUsImV4cCI6MTc2NzA3OTc2NX0.qRTyhPs6v7QsdheLMWxR3ABerFhEI2MOeYHrT6SL1J8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiUkVGUkVTSCIsInVzZXJJZCI6MSwic3ViIjoiYXNyaXRoYUBleGFtcGxlLmNvbSIsImlhdCI6MTc2NzA3ODg2NSwiZXhwIjoxNzY3MTY1MjY1fQ.E70lOS9AYry7x83boeKL6EgaU-WOP7P0AOYIQx4DY_8\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/refresh",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "change password",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiVEVDSE5JQ0lBTiIsInVzZXJJZCI6ImJjY2I1NTNlLTRjN2UtNDI3MC1iMTI1LTA0NDA5NzJjNGJjNyIsImVtYWlsIjoidGVjaDEuYXBwbHlAZW1haWwuY29tIiwic3ViIjoidGVjaDEuYXBwbHlAZW1haWwuY29tIiwiaWF0IjoxNzY3MjcwNzI5LCJleHAiOjE3NjczNTcxMjl9.-e6BTsMVxNw2m6tKDRc_oAQq5jL0hLN6y58y0mL79BIkgdYQVJrgYE4qgDw7pXJyU-kPUBfr3G7p5ACSFW2ShQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"currentPassword\": \"613f063c-ee7\",\r\n  \"newPassword\": \"password\",\r\n  \"confirmPassword\": \"password\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/change-password",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"change-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/me",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/me",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"me"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

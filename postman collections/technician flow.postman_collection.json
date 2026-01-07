@@ -1,0 +1,444 @@
+{
+	"info": {
+		"_postman_id": "013cd4b6-fb82-4cc5-a938-1f3db2611543",
+		"name": "technician flow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-013cd4b6-fb82-4cc5-a938-1f3db2611543?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "create technician profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"tech1\",\r\n  \"email\": \"tech1.apply@email.com\",\r\n  \"phone\": \"9876543219\",\r\n  \"skills\": [\r\n    \"AC Repair\",\r\n    \"Wiring\",\r\n    \"Refrigerator Service\"\r\n  ],\r\n  \"specialization\": \"Home Appliance Technician\",\r\n  \"experience\": 4,\r\n  \"location\": \"Hyderabad\",\r\n  \"maxWorkload\": 5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/profile",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "apply for technician",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"fullName\": \"Tech1 applying\",\r\n  \"email\": \"tech1.apply@email.com\",\r\n  \"phone\": \"555-987-6543\",\r\n  \"address\": \"789 Maple Avenue, Suite 302\",\r\n  \"city\": \"San Francisco\",\r\n  \"state\": \"California\",\r\n  \"zipCode\": \"94102\",\r\n  \"experience\": 7,\r\n  \"specialization\": \"HVAC\",\r\n  \"skills\": [\r\n    \"Air Conditioner Installation\",\r\n    \"Furnace Repair\",\r\n    \"Ductwork Design\",\r\n    \"Refrigerant Handling\",\r\n    \"System Maintenance\"\r\n  ],\r\n  \"certifications\": \"EPA Section 608 Certified, NATE Certified\",\r\n  \"previousEmployer\": \"Cool Systems HVAC Inc.\",\r\n  \"workExperienceDetails\": \"Worked as HVAC technician for 7 years handling both residential and commercial installations. Experienced in system diagnostics, repairs, and preventive maintenance. Managed projects worth up to $50,000.\",\r\n  \"maxWorkload\": 8,\r\n  \"motivation\": \"I'm looking to join a company that values quality workmanship and customer satisfaction. I'm excited about the opportunity to work on diverse projects and continue developing my expertise in HVAC systems.\",\r\n  \"hasVehicle\": true,\r\n  \"hasToolkit\": true,\r\n  \"availability\": \"Monday-Friday 7AM-5PM, Available for emergency calls on weekends\",\r\n  \"emergencyContactName\": \"Michael Anderson\",\r\n  \"emergencyContactPhone\": \"555-654-3210\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/apply",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"apply"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update avialability",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"available\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/f47f0eb5-adc8-4579-bd6a-72e49b0f24a4/availability",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"f47f0eb5-adc8-4579-bd6a-72e49b0f24a4",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "technicians assigned requests",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Jane\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"jane@acme.com\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"skills\": [\"ELECTRICAL\", \"HVAC\"],\r\n  \"location\": \"NYC\",\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/technician/my-requests",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"technician",
+						"my-requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "accept the service request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Jane\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"jane@acme.com\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"skills\": [\"ELECTRICAL\", \"HVAC\"],\r\n  \"location\": \"NYC\",\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/695670aafe6fd15cbf97b0ff/accept",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"695670aafe6fd15cbf97b0ff",
+						"accept"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reject the service request Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"action\": \"REJECT\",\r\n  \"reason\": \"Not available at that time\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/695672c0a4a7de7c2c37fed9/reject",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"695672c0a4a7de7c2c37fed9",
+						"reject"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get my requests with customer details",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/technician/my-requests/with-customer",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"technician",
+						"my-requests",
+						"with-customer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "complete and update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/69565c9ffe6fd15cbf97b0fd/complete",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"69565c9ffe6fd15cbf97b0fd",
+						"complete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "see my profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/me",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update my availability",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"available\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/my/availability",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"my",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get my workload",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/my/workload",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"my",
+						"workload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get my ratings",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2/ratings/my-rating",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2",
+						"ratings",
+						"my-rating"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

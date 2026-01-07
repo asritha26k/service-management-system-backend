@@ -1,0 +1,132 @@
+{
+	"info": {
+		"_postman_id": "d545e78a-ab90-45a1-8f48-9133f3097b73",
+		"name": "notification-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-d545e78a-ab90-45a1-8f48-9133f3097b73?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "send notification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": 101,\r\n  \"type\": \"EMAIL\",        // EMAIL | SMS | IN_APP\r\n  \"title\": \"System Update\",\r\n  \"message\": \"We will be down tonight.\",\r\n  \"recipientEmail\": \"user@example.com\"   // required when type=EMAIL\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}notification-service/api/notifications/send",
+					"host": [
+						"{{baseUrl}}notification-service"
+					],
+					"path": [
+						"api",
+						"notifications",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "send credentials",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"recipientEmail\": \"user@example.com\",\r\n  \"subject\": \"Your Credentials\",\r\n  \"body\": \"Username: ...\\nPassword: ...\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}notification-service/api/notifications/send-credentials",
+					"host": [
+						"{{baseUrl}}notification-service"
+					],
+					"path": [
+						"api",
+						"notifications",
+						"send-credentials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list notifications for user",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}notification-service/api/notifications/user",
+					"host": [
+						"{{baseUrl}}notification-service"
+					],
+					"path": [
+						"api",
+						"notifications",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}notification-service/api/notifications/{id}/read",
+					"host": [
+						"{{baseUrl}}notification-service"
+					],
+					"path": [
+						"api",
+						"notifications",
+						"{id}",
+						"read"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

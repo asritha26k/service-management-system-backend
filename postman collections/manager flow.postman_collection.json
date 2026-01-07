@@ -1,0 +1,545 @@
+{
+	"info": {
+		"_postman_id": "614183a9-48da-4e39-b27f-835730e7c1d1",
+		"name": "manager flow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-614183a9-48da-4e39-b27f-835730e7c1d1?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "get pending service requests",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"customerId\": 3,\r\n//   \"serviceId\": \"6953abb68d73b60ebdbbb18f\",\r\n//   \"priority\": \"HIGH\",\r\n//   \"preferredDate\": \"2026-01-05T10:00:00Z\",\r\n//   \"address\": \"123 Main St, City\"\r\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/status/REQUESTED",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"status",
+						"REQUESTED"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "available technicians",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Jane\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"jane@acme.com\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"skills\": [\"ELECTRICAL\", \"HVAC\"],\r\n  \"location\": \"NYC\",\r\n  \"available\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/available",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"available"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign req to technician",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"technicianId\":\"c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/69592adc9173571874297691/assign",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"69592adc9173571874297691",
+						"assign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pending technicians",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/applications/pending",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"applications",
+						"pending"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register technician",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"john.anderson@email.com\",\r\n  \"name\": \"John Anderson\",\r\n  \"phone\": \"555-987-6543\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}identity-service/api/auth/manager/register-technician",
+					"host": [
+						"{{baseUrl}}identity-service"
+					],
+					"path": [
+						"api",
+						"auth",
+						"manager",
+						"register-technician"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get tech by id",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Jane\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"jane@acme.com\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"skills\": [\"ELECTRICAL\", \"HVAC\"],\r\n  \"location\": \"NYC\",\r\n  \"available\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"c98ca9d2-de82-4b08-bd75-e8f39d0cb0f2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get workload of technician",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Jane\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"jane@acme.com\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"skills\": [\"ELECTRICAL\", \"HVAC\"],\r\n  \"location\": \"NYC\",\r\n  \"available\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/e04953a2-eed7-4233-8527-b2077d975d06/workload",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"e04953a2-eed7-4233-8527-b2077d975d06",
+						"workload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reject application",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"rejectionReason\": \"The applicant's availability does not match our service coverage hours. We require availability for weekend emergency calls.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/applications/90febd76-2662-44e2-9e98-2c9af47bf34c/reject",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"applications",
+						"90febd76-2662-44e2-9e98-2c9af47bf34c",
+						"reject"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "approve application",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{manager}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"userId\": \"90febd76-2662-44e2-9e98-2c9af47bf34c\",\r\n//   \"type\": \"EMAIL\",  \r\n//   \"phone\":  \"9876543210\",   \r\n//   \"title\": \"System Update\",\r\n//   \"message\": \"We will be down tonight.\",\r\n//   \"recipientEmail\": \"tech.john@example.com\"  \r\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}technician-service/api/technicians/applications/bcdb9367-450e-4188-8d7b-b2a923466064/approve",
+					"host": [
+						"{{baseUrl}}technician-service"
+					],
+					"path": [
+						"api",
+						"technicians",
+						"applications",
+						"bcdb9367-450e-4188-8d7b-b2a923466064",
+						"approve"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all requests",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"customerId\": 3,\r\n//   \"serviceId\": \"6953abb68d73b60ebdbbb18f\",\r\n//   \"priority\": \"HIGH\",\r\n//   \"preferredDate\": \"2026-01-05T10:00:00Z\",\r\n//   \"address\": \"123 Main St, City\"\r\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get request by id",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"categoryId\": \"64fcat1\",\r\n  \"name\": \"Deep Clean\",\r\n  \"description\": \"Full home deep clean\",\r\n  \"basePrice\": 120.00,\r\n  \"estimatedDurationMinutes\": 180,\r\n  \"slaHours\": 24,\r\n  \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/69567139fe6fd15cbf97b100",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"69567139fe6fd15cbf97b100"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "requests assigned for a customer",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"categoryId\": \"64fcat1\",\r\n  \"name\": \"Deep Clean\",\r\n  \"description\": \"Full home deep clean\",\r\n  \"basePrice\": 120.00,\r\n  \"estimatedDurationMinutes\": 180,\r\n  \"slaHours\": 24,\r\n  \"images\": [{\"url\":\"https://cdn/img1.jpg\",\"alt\":\"before\"}]\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/service-requests/technician/{technicianId}",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"technician",
+						"{technicianId}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get requests of a customer(admin,manager)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/service-requests/customer/3",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"service-requests",
+						"customer",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post bill",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"requestId\":\"reqid1\",\r\n  \"customerId\":\"cust-123\",\r\n  \"serviceAmount\":120.00,\r\n  \"taxAmount\":10.00,\r\n  \"totalAmount\":130.00\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}service-operation-service/api/billing/invoices",
+					"host": [
+						"{{baseUrl}}service-operation-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"invoices"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

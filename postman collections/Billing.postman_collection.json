@@ -1,0 +1,102 @@
+{
+	"info": {
+		"_postman_id": "86ca34ef-c255-4eea-9dc6-52a9d72b358c",
+		"name": "Billing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44987418",
+		"_collection_link": "https://asritha-1866103.postman.co/workspace/Capstone~106d8614-b9bc-480f-8c0d-2597b5c560e9/collection/44987418-86ca34ef-c255-4eea-9dc6-52a9d72b358c?action=share&source=collection_link&creator=44987418"
+	},
+	"item": [
+		{
+			"name": "see invoices",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/billing/invoices/request/6955fbfb95dd3506782d80ac",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"invoices",
+						"request",
+						"6955fbfb95dd3506782d80ac"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pay",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/billing/invoices/69566adafe6fd15cbf97b0fe/pay",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"invoices",
+						"69566adafe6fd15cbf97b0fe",
+						"pay"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get my invoices",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cust}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}service-operations-service/api/billing/my-invoices",
+					"host": [
+						"{{baseUrl}}service-operations-service"
+					],
+					"path": [
+						"api",
+						"billing",
+						"my-invoices"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
